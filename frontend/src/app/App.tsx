@@ -30,7 +30,7 @@ function AppShell() {
   if (!isReady) {
     return (
       <div className="min-h-screen bg-background p-6">
-        <div className="text-sm text-muted-foreground">Loading...</div>
+        <div className="text-sm text-muted-foreground">Жүктелуде...</div>
       </div>
     );
   }

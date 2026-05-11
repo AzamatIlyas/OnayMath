@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Send, Sparkles } from "lucide-react";
 
 import { assistantApi, tokenStorage } from "../api";
@@ -48,7 +48,7 @@ export default function AIAssistant({ onNavigate, topicId }: AIAssistantProps) {
         setMessages(history);
       } catch (err) {
         if (!mounted) return;
-        setError(getErrorMessage(err, "Failed to load chat history"));
+        setError(getErrorMessage(err, "Чат тарихын жүктеу мүмкін болмады"));
       } finally {
         if (mounted) setIsLoadingHistory(false);
       }
@@ -80,7 +80,7 @@ export default function AIAssistant({ onNavigate, topicId }: AIAssistantProps) {
 
     const accessToken = tokenStorage.getAccessToken();
     if (!accessToken) {
-      setError("Session expired. Please login again.");
+      setError("Сессия аяқталды. Қайта кіріңіз.");
       return;
     }
 
@@ -123,7 +123,7 @@ export default function AIAssistant({ onNavigate, topicId }: AIAssistantProps) {
         },
       });
     } catch (err) {
-      setError(getErrorMessage(err, "Failed to stream assistant answer"));
+      setError(getErrorMessage(err, "Ассистент жауабын алу мүмкін болмады"));
       setMessages((prev) => prev.filter((item) => item.id !== assistantMessageId));
     } finally {
       setIsStreaming(false);
@@ -137,7 +137,7 @@ export default function AIAssistant({ onNavigate, topicId }: AIAssistantProps) {
           <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">🤖</div>
           <div className="flex-1">
             <h1 className="text-2xl" style={{ fontWeight: 800 }}>OnayBot</h1>
-            <p className="text-sm opacity-90">AI-помощник по математике</p>
+            <p className="text-sm opacity-90">Математика бойынша AI-көмекші</p>
           </div>
           <Sparkles className="w-5 h-5" />
         </div>
@@ -147,10 +147,10 @@ export default function AIAssistant({ onNavigate, topicId }: AIAssistantProps) {
         {error && <div className="rounded-2xl border border-red-300 bg-red-50 text-red-700 px-4 py-3 text-sm">{error}</div>}
 
         {isLoadingHistory ? (
-          <div className="text-sm text-muted-foreground">Загрузка истории...</div>
+          <div className="text-sm text-muted-foreground">Тарих жүктелуде...</div>
         ) : messages.length === 0 ? (
           <div className="bg-white border border-border rounded-2xl p-4 text-sm text-muted-foreground">
-            Задайте вопрос, и я объясню тему по шагам.
+            Сұрақ қойыңыз, мен тақырыпты қадамдап түсіндіріп беремін.
           </div>
         ) : (
           messages.map((message) => (
@@ -179,7 +179,7 @@ export default function AIAssistant({ onNavigate, topicId }: AIAssistantProps) {
                 void sendMessage();
               }
             }}
-            placeholder="Напишите вопрос..."
+            placeholder="Сұрағыңызды жазыңыз..."
             className="flex-1 px-4 py-3 border border-border rounded-2xl focus:outline-none focus:border-primary"
           />
           <button

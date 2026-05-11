@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 
 import { locationsApi } from "../api";
@@ -49,7 +49,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         setCities(response.data);
       } catch (err) {
         if (!mounted) return;
-        setError(getErrorMessage(err, "Failed to load cities"));
+        setError(getErrorMessage(err, "Қалаларды жүктеу мүмкін болмады"));
       } finally {
         if (mounted) setIsLocationsLoading(false);
       }
@@ -79,7 +79,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         setSchools(response.data.map((school) => ({ id: school.id, name: school.name })));
       } catch (err) {
         if (!mounted) return;
-        setError(getErrorMessage(err, "Failed to load schools"));
+        setError(getErrorMessage(err, "Мектептерді жүктеу мүмкін болмады"));
       } finally {
         if (mounted) setIsLocationsLoading(false);
       }
@@ -128,7 +128,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       });
       onComplete();
     } catch (err) {
-      setError(getErrorMessage(err, "Registration failed"));
+      setError(getErrorMessage(err, "Тіркелу сәтсіз аяқталды"));
     } finally {
       setIsSubmitting(false);
     }
@@ -150,7 +150,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       });
       onComplete();
     } catch (err) {
-      setError(getErrorMessage(err, "Login failed"));
+      setError(getErrorMessage(err, "Кіру сәтсіз аяқталды"));
     } finally {
       setIsSubmitting(false);
     }
@@ -162,7 +162,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         <div className="text-center">
           <div className="text-5xl mb-3">📐</div>
           <h1 className="text-3xl" style={{ fontWeight: 800 }}>OnayMath</h1>
-          <p className="text-muted-foreground mt-1">Школьная математика 1-11 классы</p>
+          <p className="text-muted-foreground mt-1">1-11 сыныпқа арналған мектеп математикасы</p>
         </div>
 
         <div className="flex gap-2 bg-muted p-1 rounded-2xl">
@@ -175,7 +175,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             style={{ fontWeight: 700 }}
             type="button"
           >
-            Регистрация
+            Тіркелу
           </button>
           <button
             onClick={() => {
@@ -186,7 +186,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             style={{ fontWeight: 700 }}
             type="button"
           >
-            Вход
+            Кіру
           </button>
         </div>
 
@@ -199,7 +199,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             <input
               value={registerForm.name}
               onChange={(event) => setRegisterForm((prev) => ({ ...prev, name: event.target.value }))}
-              placeholder="Ваше имя"
+              placeholder="Атыңыз"
               className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-primary"
             />
             <input
@@ -212,7 +212,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             <input
               value={registerForm.password}
               onChange={(event) => setRegisterForm((prev) => ({ ...prev, password: event.target.value }))}
-              placeholder="Пароль (минимум 8 символов)"
+              placeholder="Құпиясөз (кемінде 8 таңба)"
               type="password"
               className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-primary"
             />
@@ -224,7 +224,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                 className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-primary"
                 disabled={isLocationsLoading}
               >
-                <option value="">Выберите город</option>
+                <option value="">Қаланы таңдаңыз</option>
                 {cities.map((city) => (
                   <option key={city.id} value={city.id}>
                     {city.name}
@@ -238,7 +238,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                 className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-primary"
                 disabled={!registerForm.cityId || isLocationsLoading}
               >
-                <option value="">Выберите школу</option>
+                <option value="">Мектепті таңдаңыз</option>
                 {schools.map((school) => (
                   <option key={school.id} value={school.id}>
                     {school.name}
@@ -254,7 +254,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             >
               {grades.map((grade) => (
                 <option key={grade} value={grade}>
-                  {grade}-класс
+                  {grade}-сынып
                 </option>
               ))}
             </select>
@@ -265,7 +265,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               className="w-full bg-primary text-white py-3 rounded-xl disabled:opacity-50"
               style={{ fontWeight: 700 }}
             >
-              {isSubmitting ? "Регистрация..." : "Зарегистрироваться"}
+              {isSubmitting ? "Тіркелуде..." : "Тіркелу"}
             </button>
           </form>
         ) : (
@@ -280,7 +280,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             <input
               value={loginForm.password}
               onChange={(event) => setLoginForm((prev) => ({ ...prev, password: event.target.value }))}
-              placeholder="Пароль"
+              placeholder="Құпиясөз"
               type="password"
               className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:border-primary"
             />
@@ -291,7 +291,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               className="w-full bg-primary text-white py-3 rounded-xl disabled:opacity-50"
               style={{ fontWeight: 700 }}
             >
-              {isSubmitting ? "Вход..." : "Войти"}
+              {isSubmitting ? "Кіру..." : "Кіру"}
             </button>
           </form>
         )}

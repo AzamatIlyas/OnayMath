@@ -36,7 +36,7 @@ app.add_middleware(
 async def on_http_exception(_: Request, exc: HTTPException):
     if isinstance(exc.detail, dict):
         payload = {
-            "error": exc.detail.get("error", "Request failed"),
+            "error": exc.detail.get("error", "Сұраныс орындалмады"),
             "code": exc.detail.get("code", "HTTP_ERROR"),
             "details": exc.detail.get("details"),
         }
@@ -50,7 +50,7 @@ async def on_validation_error(_: Request, exc: RequestValidationError):
     return JSONResponse(
         status_code=422,
         content={
-            "error": "Validation error",
+            "error": "Валидация қатесі",
             "code": "VALIDATION_ERROR",
             "details": exc.errors(),
         },

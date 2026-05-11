@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
@@ -48,7 +48,7 @@ async def get_books(
 async def get_book(book_id: str, user: AppUser = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     book = (await db.execute(select(Book).where(Book.id == book_id))).scalar_one_or_none()
     if not book:
-        raise HTTPException(status_code=404, detail={"error": "Book not found", "code": "BOOK_NOT_FOUND"})
+        raise HTTPException(status_code=404, detail={"error": "Кітап табылмады", "code": "BOOK_NOT_FOUND"})
 
     payload = serialize_book(book)
     payload["signedFileUrl"] = build_book_signed_url(book.file_url)

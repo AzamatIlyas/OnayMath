@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, ChevronDown, ChevronUp, Play } from "lucide-react";
 
 import { topicsApi } from "../api";
@@ -36,7 +36,7 @@ export default function TopicsPage({ onNavigate, onStartLesson }: TopicsPageProp
         setTopics(response.data);
       } catch (err) {
         if (!mounted) return;
-        setError(getErrorMessage(err, "Failed to load topics"));
+        setError(getErrorMessage(err, "Тақырыптарды жүктеу мүмкін болмады"));
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -75,7 +75,7 @@ export default function TopicsPage({ onNavigate, onStartLesson }: TopicsPageProp
       const detail = await topicsApi.getTopicById(topicId);
       setTopicDetails((prev) => ({ ...prev, [topicId]: detail }));
     } catch (err) {
-      setError(getErrorMessage(err, "Failed to load topic lessons"));
+      setError(getErrorMessage(err, "Тақырып сабақтарын жүктеу мүмкін болмады"));
     } finally {
       setLoadingTopicId(null);
     }
@@ -85,8 +85,8 @@ export default function TopicsPage({ onNavigate, onStartLesson }: TopicsPageProp
     <div className="min-h-screen bg-background pb-20">
       <div className="bg-white border-b border-border sticky top-0 z-10">
         <div className="p-6">
-          <h1 className="text-2xl mb-2" style={{ fontWeight: 800 }}>Темы математики</h1>
-          <p className="text-sm text-muted-foreground">{user?.grade ?? "-"}-класс, учебная программа</p>
+          <h1 className="text-2xl mb-2" style={{ fontWeight: 800 }}>Математика тақырыптары</h1>
+          <p className="text-sm text-muted-foreground">{user?.grade ?? "-"}-сынып, оқу бағдарламасы</p>
 
           <div className="flex gap-2 mt-4">
             <button
@@ -94,21 +94,21 @@ export default function TopicsPage({ onNavigate, onStartLesson }: TopicsPageProp
               className={`px-4 py-2 rounded-xl transition-all ${filter === "all" ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}
               style={{ fontWeight: 700 }}
             >
-              Все
+              Барлығы
             </button>
             <button
               onClick={() => setFilter("in-progress")}
               className={`px-4 py-2 rounded-xl transition-all ${filter === "in-progress" ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}
               style={{ fontWeight: 700 }}
             >
-              В процессе
+              Орындалып жатыр
             </button>
             <button
               onClick={() => setFilter("completed")}
               className={`px-4 py-2 rounded-xl transition-all ${filter === "completed" ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}
               style={{ fontWeight: 700 }}
             >
-              Завершенные
+              Аяқталған
             </button>
           </div>
         </div>
@@ -118,9 +118,9 @@ export default function TopicsPage({ onNavigate, onStartLesson }: TopicsPageProp
         {error && <div className="rounded-2xl border border-red-300 bg-red-50 text-red-700 px-4 py-3 text-sm">{error}</div>}
 
         {isLoading ? (
-          <div className="text-sm text-muted-foreground">Загрузка...</div>
+          <div className="text-sm text-muted-foreground">Жүктелуде...</div>
         ) : filteredTopics.length === 0 ? (
-          <div className="text-sm text-muted-foreground">Темы не найдены</div>
+          <div className="text-sm text-muted-foreground">Тақырыптар табылмады</div>
         ) : (
           filteredTopics.map((topic) => {
             const isExpanded = expandedTopicId === topic.id;
@@ -138,7 +138,7 @@ export default function TopicsPage({ onNavigate, onStartLesson }: TopicsPageProp
                       <div className="h-full bg-primary rounded-full" style={{ width: `${topic.progressPercent}%` }} />
                     </div>
                     <div className="text-xs text-muted-foreground mt-2">
-                      {topic.completedLessons}/{topic.totalLessons} уроков
+                      {topic.completedLessons}/{topic.totalLessons} сабақ
                     </div>
                   </div>
 
@@ -147,7 +147,7 @@ export default function TopicsPage({ onNavigate, onStartLesson }: TopicsPageProp
 
                 {isExpanded && (
                   <div className="border-t border-border px-5 py-4 space-y-2">
-                    {loadingTopicId === topic.id && <div className="text-sm text-muted-foreground">Загрузка уроков...</div>}
+                    {loadingTopicId === topic.id && <div className="text-sm text-muted-foreground">Сабақтар жүктелуде...</div>}
 
                     {detail?.lessons.map((lesson) => (
                       <button

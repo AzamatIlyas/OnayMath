@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
@@ -45,6 +45,6 @@ async def get_topics(
 async def get_topic(topic_id: str, user: AppUser = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     topic = (await db.execute(select(Topic).where(Topic.id == topic_id, Topic.is_published.is_(True)))).scalar_one_or_none()
     if not topic:
-        raise HTTPException(status_code=404, detail={"error": "Topic not found", "code": "TOPIC_NOT_FOUND"})
+        raise HTTPException(status_code=404, detail={"error": "Тақырып табылмады", "code": "TOPIC_NOT_FOUND"})
 
     return await build_topic_summary(db, topic, user.id)

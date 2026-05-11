@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
@@ -15,7 +15,7 @@ router = APIRouter(prefix="/lessons", tags=["lessons"])
 async def get_lesson(lesson_id: str, user: AppUser = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     lesson = (await db.execute(select(Lesson).where(Lesson.id == lesson_id))).scalar_one_or_none()
     if not lesson:
-        raise HTTPException(status_code=404, detail={"error": "Lesson not found", "code": "LESSON_NOT_FOUND"})
+        raise HTTPException(status_code=404, detail={"error": "Сабақ табылмады", "code": "LESSON_NOT_FOUND"})
 
     progress = await get_or_create_progress(db, user.id, lesson.id)
     await db.commit()
@@ -35,7 +35,7 @@ async def get_lesson(lesson_id: str, user: AppUser = Depends(get_current_user), 
 async def complete_lesson(lesson_id: str, user: AppUser = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     lesson = (await db.execute(select(Lesson).where(Lesson.id == lesson_id))).scalar_one_or_none()
     if not lesson:
-        raise HTTPException(status_code=404, detail={"error": "Lesson not found", "code": "LESSON_NOT_FOUND"})
+        raise HTTPException(status_code=404, detail={"error": "Сабақ табылмады", "code": "LESSON_NOT_FOUND"})
 
     progress = await get_or_create_progress(db, user.id, lesson.id)
     if progress.status == "NOT_STARTED":

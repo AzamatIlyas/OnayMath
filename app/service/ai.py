@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from typing import Any
 
@@ -11,12 +11,12 @@ GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 def _build_messages(message: str, topic_title: str | None, history: list[dict[str, str]] | None) -> list[dict[str, str]]:
     system_prompt = (
-        "Ты OnayMath AI-ассистент по школьной математике. "
-        "Отвечай на русском и на казахском простым и понятным языком для ученика. "
-        "Давай пошаговые объяснения и короткие примеры."
+        "Сен OnayMath платформасының мектеп математикасы бойынша AI-көмекшісісің. "
+        "Жауаптарды қазақ тілінде, оқушыға түсінікті қысқа қадамдармен бер. "
+        "Формуланы қолдансаң, неге сол формула алынғанын да түсіндір."
     )
     if topic_title:
-        system_prompt += f" Текущая тема: {topic_title}."
+        system_prompt += f" Ағымдағы тақырып: {topic_title}."
 
     messages: list[dict[str, str]] = [{"role": "system", "content": system_prompt}]
 

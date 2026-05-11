@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Award, BookOpen, Flame, LogOut, Trophy } from "lucide-react";
 
@@ -35,7 +35,7 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
         setAchievements(earned.data.map((item) => item.achievement));
       } catch (err) {
         if (!mounted) return;
-        setError(getErrorMessage(err, "Failed to load profile"));
+        setError(getErrorMessage(err, "Профильді жүктеу мүмкін болмады"));
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -58,9 +58,9 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
       <div className="bg-gradient-to-br from-[#6C3FE8] to-[#8B5CF6] text-white p-6 pb-12 rounded-b-[2.5rem]">
         <div className="text-center">
           <div className="w-24 h-24 rounded-3xl bg-white/20 mx-auto flex items-center justify-center text-5xl mb-3">👤</div>
-          <h1 className="text-2xl" style={{ fontWeight: 800 }}>{profile?.name ?? "Пользователь"}</h1>
+          <h1 className="text-2xl" style={{ fontWeight: 800 }}>{profile?.name ?? "Пайдаланушы"}</h1>
           <p className="opacity-90 mt-1">{profile?.email ?? "-"}</p>
-          <p className="opacity-90 mt-1">{profile?.grade ?? "-"}-класс</p>
+          <p className="opacity-90 mt-1">{profile?.grade ?? "-"}-сынып</p>
         </div>
       </div>
 
@@ -68,7 +68,7 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
         {error && <div className="rounded-2xl border border-red-300 bg-red-50 text-red-700 px-4 py-3 text-sm">{error}</div>}
 
         {isLoading ? (
-          <div className="text-sm text-muted-foreground">Загрузка...</div>
+          <div className="text-sm text-muted-foreground">Жүктелуде...</div>
         ) : (
           <>
             <div className="bg-white rounded-3xl border border-border p-5">
@@ -76,15 +76,15 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
               <div className="grid grid-cols-2 gap-3">
                 <StatCard label="XP" value={String(profile?.stats.xpTotal ?? 0)} icon={<Trophy className="w-5 h-5 text-yellow-500" />} />
                 <StatCard label="Серия" value={String(profile?.stats.streakDays ?? 0)} icon={<Flame className="w-5 h-5 text-orange-500" />} />
-                <StatCard label="Уроки" value={String(profile?.stats.lessonsDone ?? 0)} icon={<BookOpen className="w-5 h-5 text-blue-500" />} />
-                <StatCard label="Тесты" value={String(profile?.stats.testsPassed ?? 0)} icon={<Award className="w-5 h-5 text-green-600" />} />
+                <StatCard label="Сабақ" value={String(profile?.stats.lessonsDone ?? 0)} icon={<BookOpen className="w-5 h-5 text-blue-500" />} />
+                <StatCard label="Квиз" value={String(profile?.stats.testsPassed ?? 0)} icon={<Award className="w-5 h-5 text-green-600" />} />
               </div>
             </div>
 
             <div className="bg-white rounded-3xl border border-border p-5">
-              <h2 className="text-lg mb-3" style={{ fontWeight: 700 }}>Достижения</h2>
+              <h2 className="text-lg mb-3" style={{ fontWeight: 700 }}>Жетістіктер</h2>
               {achievements.length === 0 ? (
-                <div className="text-sm text-muted-foreground">Пока нет достижений</div>
+                <div className="text-sm text-muted-foreground">Әзірге жетістік жоқ</div>
               ) : (
                 <div className="space-y-2">
                   {achievements.map((item) => (
@@ -104,7 +104,7 @@ export default function Profile({ onNavigate, onLogout }: ProfileProps) {
               style={{ fontWeight: 700 }}
             >
               <LogOut className="w-4 h-4" />
-              Выйти
+              Шығу
             </button>
           </>
         )}

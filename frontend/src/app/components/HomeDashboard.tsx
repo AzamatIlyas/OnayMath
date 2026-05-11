@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { BookOpen, Home, Library, MessageCircle, Trophy, User, Flame, ChevronRight } from "lucide-react";
 
 import { leaderboardApi, topicsApi } from "../api";
@@ -36,7 +36,7 @@ export default function HomeDashboard({ onNavigate, currentPage }: HomeDashboard
         setLeaderboard(leaderboardResponse.leaderboard);
       } catch (err) {
         if (!mounted) return;
-        setError(getErrorMessage(err, "Failed to load dashboard"));
+        setError(getErrorMessage(err, "Басты бетті жүктеу мүмкін болмады"));
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -61,8 +61,8 @@ export default function HomeDashboard({ onNavigate, currentPage }: HomeDashboard
       <div className="bg-gradient-to-br from-[#6C3FE8] to-[#8B5CF6] text-white p-6 rounded-b-3xl shadow-lg">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <div className="text-sm opacity-80">Привет,</div>
-            <div className="text-xl" style={{ fontWeight: 800 }}>{user?.name ?? "ученик"}</div>
+            <div className="text-sm opacity-80">Сәлем,</div>
+            <div className="text-xl" style={{ fontWeight: 800 }}>{user?.name ?? "оқушы"}</div>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 bg-white/20 px-3 py-2 rounded-xl border border-white/30">
@@ -75,7 +75,7 @@ export default function HomeDashboard({ onNavigate, currentPage }: HomeDashboard
             </div>
           </div>
         </div>
-        <p className="opacity-90 text-sm">Завершено уроков: {totalCompleted}</p>
+        <p className="opacity-90 text-sm">Аяқталған сабақтар: {totalCompleted}</p>
       </div>
 
       <div className="p-6 space-y-6">
@@ -83,16 +83,16 @@ export default function HomeDashboard({ onNavigate, currentPage }: HomeDashboard
 
         <div className="bg-white rounded-3xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl" style={{ fontWeight: 700 }}>Продолжить обучение</h2>
+            <h2 className="text-xl" style={{ fontWeight: 700 }}>Оқуды жалғастыру</h2>
             <button onClick={() => onNavigate("topics")} className="text-primary flex items-center gap-1" style={{ fontWeight: 700 }}>
-              Все темы <ChevronRight className="w-4 h-4" />
+              Барлық тақырып <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
           {isLoading ? (
-            <div className="text-sm text-muted-foreground">Загрузка...</div>
+            <div className="text-sm text-muted-foreground">Жүктелуде...</div>
           ) : topics.length === 0 ? (
-            <div className="text-sm text-muted-foreground">Темы не найдены</div>
+            <div className="text-sm text-muted-foreground">Тақырыптар табылмады</div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {topics.map((topic) => (
@@ -109,7 +109,7 @@ export default function HomeDashboard({ onNavigate, currentPage }: HomeDashboard
                     <div className="h-full bg-primary rounded-full" style={{ width: `${topic.progressPercent}%` }} />
                   </div>
                   <div className="text-xs text-muted-foreground mt-2">
-                    {topic.completedLessons}/{topic.totalLessons} уроков
+                    {topic.completedLessons}/{topic.totalLessons} сабақ
                   </div>
                 </button>
               ))}
@@ -119,16 +119,16 @@ export default function HomeDashboard({ onNavigate, currentPage }: HomeDashboard
 
         <div className="bg-white rounded-3xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl" style={{ fontWeight: 700 }}>Лидеры класса</h2>
+            <h2 className="text-xl" style={{ fontWeight: 700 }}>Сынып көшбасшылары</h2>
             <button onClick={() => onNavigate("leaderboard")} className="text-primary flex items-center gap-1" style={{ fontWeight: 700 }}>
               Рейтинг <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
           {isLoading ? (
-            <div className="text-sm text-muted-foreground">Загрузка...</div>
+            <div className="text-sm text-muted-foreground">Жүктелуде...</div>
           ) : topThree.length === 0 ? (
-            <div className="text-sm text-muted-foreground">Пока данных нет</div>
+            <div className="text-sm text-muted-foreground">Әзірге дерек жоқ</div>
           ) : (
             <div className="space-y-2">
               {topThree.map((item) => (
@@ -139,7 +139,7 @@ export default function HomeDashboard({ onNavigate, currentPage }: HomeDashboard
                     </div>
                     <div>
                       <div style={{ fontWeight: 700 }}>{item.user.name}</div>
-                      <div className="text-xs text-muted-foreground">{item.user.school?.name ?? "School"}</div>
+                      <div className="text-xs text-muted-foreground">{item.user.school?.name ?? "Мектеп"}</div>
                     </div>
                   </div>
                   <div style={{ fontWeight: 700 }}>{item.xp} XP</div>
@@ -157,9 +157,9 @@ export default function HomeDashboard({ onNavigate, currentPage }: HomeDashboard
 
 function BottomNav({ currentPage, onNavigate }: { currentPage: string; onNavigate: (page: string) => void }) {
   const navItems = [
-    { id: "home", icon: Home, label: "Главная" },
-    { id: "topics", icon: BookOpen, label: "Темы" },
-    { id: "books", icon: Library, label: "Книги" },
+    { id: "home", icon: Home, label: "Басты бет" },
+    { id: "topics", icon: BookOpen, label: "Тақырыптар" },
+    { id: "books", icon: Library, label: "Кітаптар" },
     { id: "ai", icon: MessageCircle, label: "AI" },
     { id: "profile", icon: User, label: "Профиль" },
   ];

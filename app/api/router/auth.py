@@ -23,13 +23,13 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db)):
     existing = (await db.execute(select(AppUser).where(AppUser.email == payload.email.lower()))).scalar_one_or_none()
     if existing:
-        raise HTTPException(status_code=400, detail={"error": "Email already registered", "code": "EMAIL_EXISTS"})
+        raise HTTPException(status_code=400, detail={"error": "Бұл email мекенжайы бұрын тіркелген", "code": "EMAIL_EXISTS"})
 
     school = (await db.execute(select(School).where(School.id == payload.schoolId))).scalar_one_or_none()
     if not school:
-        raise HTTPException(status_code=404, detail={"error": "School not found", "code": "SCHOOL_NOT_FOUND"})
+        raise HTTPException(status_code=404, detail={"error": "Мектеп табылмады", "code": "SCHOOL_NOT_FOUND"})
     if school.city_id != payload.cityId:
-        raise HTTPException(status_code=400, detail={"error": "School does not belong to selected city", "code": "INVALID_LOCATION"})
+        raise HTTPException(status_code=400, detail={"error": "Мектеп таңдалған қалаға сәйкес емес", "code": "INVALID_LOCATION"})
 
     user = AppUser(
         email=payload.email.lower(),
@@ -57,7 +57,7 @@ async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db))
 async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
     user = (await db.execute(select(AppUser).where(AppUser.email == payload.email.lower()))).scalar_one_or_none()
     if not user or not verify_password(payload.password, user.password_hash):
-        raise HTTPException(status_code=401, detail={"error": "Invalid email or password", "code": "INVALID_CREDENTIALS"})
+        raise HTTPException(status_code=401, detail={"error": "Email немесе құпиясөз қате", "code": "INVALID_CREDENTIALS"})
 
     access_token = create_access_token(user.id)
     refresh_token = create_refresh_token(user.id)
@@ -72,15 +72,15 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
 async def refresh(payload: RefreshRequest, db: AsyncSession = Depends(get_db)):
     token_payload = decode_token_safely(payload.refreshToken, refresh=True)
     if not token_payload or token_payload.get("type") != "refresh":
-        raise HTTPException(status_code=401, detail={"error": "Invalid refresh token", "code": "UNAUTHORIZED"})
+        raise HTTPException(status_code=401, detail={"error": "Жарамсыз refresh токен", "code": "UNAUTHORIZED"})
 
     user_id = token_payload.get("sub")
     if not user_id:
-        raise HTTPException(status_code=401, detail={"error": "Invalid refresh token", "code": "UNAUTHORIZED"})
+        raise HTTPException(status_code=401, detail={"error": "Жарамсыз refresh токен", "code": "UNAUTHORIZED"})
 
     user = (await db.execute(select(AppUser).where(AppUser.id == user_id))).scalar_one_or_none()
     if not user:
-        raise HTTPException(status_code=401, detail={"error": "User not found", "code": "UNAUTHORIZED"})
+        raise HTTPException(status_code=401, detail={"error": "Пайдаланушы табылмады", "code": "UNAUTHORIZED"})
 
     return {"accessToken": create_access_token(user.id)}
 
@@ -88,5 +88,5 @@ async def refresh(payload: RefreshRequest, db: AsyncSession = Depends(get_db)):
 @router.post("/logout")
 async def logout(payload: LogoutRequest):
     if not payload.refreshToken:
-        raise HTTPException(status_code=400, detail={"error": "Missing refresh token", "code": "BAD_REQUEST"})
+        raise HTTPException(status_code=400, detail={"error": "Refresh токен берілмеген", "code": "BAD_REQUEST"})
     return {"success": True}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { BookOpen, Download, FileText } from "lucide-react";
 
 import { booksApi } from "../api";
@@ -33,7 +33,7 @@ export default function Books({ onNavigate }: BooksProps) {
         setBooks(response.data);
       } catch (err) {
         if (!mounted) return;
-        setError(getErrorMessage(err, "Failed to load books"));
+        setError(getErrorMessage(err, "Кітаптарды жүктеу мүмкін болмады"));
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -63,7 +63,7 @@ export default function Books({ onNavigate }: BooksProps) {
       const detail = await booksApi.getBookById(book.id);
       setSelectedBook(detail);
     } catch (err) {
-      setError(getErrorMessage(err, "Failed to load book details"));
+      setError(getErrorMessage(err, "Кітап мәліметін жүктеу мүмкін болмады"));
     } finally {
       setIsBookLoading(false);
     }
@@ -76,7 +76,7 @@ export default function Books({ onNavigate }: BooksProps) {
       <div className="min-h-screen bg-background pb-20">
         <div className="bg-white border-b border-border sticky top-0 z-10 p-4">
           <button onClick={() => setSelectedBook(null)} className="text-primary" style={{ fontWeight: 700 }}>
-            ← Назад
+            ← Артқа
           </button>
         </div>
 
@@ -85,8 +85,8 @@ export default function Books({ onNavigate }: BooksProps) {
 
           <div className="bg-white rounded-3xl border border-border p-5">
             <h1 className="text-2xl" style={{ fontWeight: 800 }}>{selectedBook.title}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{selectedBook.grade}-класс</p>
-            <p className="text-sm text-muted-foreground">{selectedBook.author ?? "Unknown author"}</p>
+            <p className="text-sm text-muted-foreground mt-1">{selectedBook.grade}-сынып</p>
+            <p className="text-sm text-muted-foreground">{selectedBook.author ?? "Белгісіз автор"}</p>
 
             <div className="flex gap-3 mt-4">
               <button
@@ -98,7 +98,7 @@ export default function Books({ onNavigate }: BooksProps) {
                 className="flex-1 bg-primary text-white py-3 rounded-2xl flex items-center justify-center gap-2"
                 style={{ fontWeight: 700 }}
               >
-                <BookOpen className="w-4 h-4" /> Открыть
+                <BookOpen className="w-4 h-4" /> Ашу
               </button>
               <button
                 onClick={() => {
@@ -114,9 +114,9 @@ export default function Books({ onNavigate }: BooksProps) {
           </div>
 
           <div className="bg-white rounded-3xl border border-border p-5">
-            <h2 className="text-lg mb-3" style={{ fontWeight: 700 }}>Содержание</h2>
+            <h2 className="text-lg mb-3" style={{ fontWeight: 700 }}>Мазмұны</h2>
             {chapters.length === 0 ? (
-              <div className="text-sm text-muted-foreground">Список глав отсутствует</div>
+              <div className="text-sm text-muted-foreground">Тараулар тізімі жоқ</div>
             ) : (
               <div className="space-y-2">
                 {chapters.map((chapter, index) => (
@@ -138,8 +138,8 @@ export default function Books({ onNavigate }: BooksProps) {
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="bg-gradient-to-br from-[#6C3FE8] to-[#8B5CF6] text-white p-6 rounded-b-3xl shadow-lg">
-        <h1 className="text-3xl" style={{ fontWeight: 800 }}>Учебники</h1>
-        <p className="opacity-90 mt-1">Материалы по классам</p>
+        <h1 className="text-3xl" style={{ fontWeight: 800 }}>Оқулықтар</h1>
+        <p className="opacity-90 mt-1">Сыныптар бойынша материалдар</p>
 
         <div className="flex gap-2 overflow-x-auto mt-4">
           <button
@@ -147,7 +147,7 @@ export default function Books({ onNavigate }: BooksProps) {
             className={`px-4 py-2 rounded-xl whitespace-nowrap ${selectedGrade === null ? "bg-white text-primary" : "bg-white/20 text-white"}`}
             style={{ fontWeight: 700 }}
           >
-            Все классы
+            Барлық сынып
           </button>
           {grades.map((grade) => (
             <button
@@ -156,7 +156,7 @@ export default function Books({ onNavigate }: BooksProps) {
               className={`px-4 py-2 rounded-xl whitespace-nowrap ${selectedGrade === grade ? "bg-white text-primary" : "bg-white/20 text-white"}`}
               style={{ fontWeight: 700 }}
             >
-              {grade}-класс
+              {grade}-сынып
             </button>
           ))}
         </div>
@@ -166,9 +166,9 @@ export default function Books({ onNavigate }: BooksProps) {
         {error && <div className="rounded-2xl border border-red-300 bg-red-50 text-red-700 px-4 py-3 text-sm">{error}</div>}
 
         {isLoading ? (
-          <div className="text-sm text-muted-foreground">Загрузка...</div>
+          <div className="text-sm text-muted-foreground">Жүктелуде...</div>
         ) : filteredBooks.length === 0 ? (
-          <div className="text-sm text-muted-foreground">Книги не найдены</div>
+          <div className="text-sm text-muted-foreground">Кітаптар табылмады</div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
             {filteredBooks.map((book) => (
@@ -179,14 +179,14 @@ export default function Books({ onNavigate }: BooksProps) {
               >
                 <div className="h-36 bg-muted rounded-2xl mb-3 flex items-center justify-center text-5xl">📘</div>
                 <div style={{ fontWeight: 700 }}>{book.title}</div>
-                <div className="text-sm text-muted-foreground">{book.grade}-класс</div>
-                <div className="text-xs text-muted-foreground mt-1">{book.author ?? "Unknown"}</div>
+                <div className="text-sm text-muted-foreground">{book.grade}-сынып</div>
+                <div className="text-xs text-muted-foreground mt-1">{book.author ?? "Белгісіз"}</div>
               </button>
             ))}
           </div>
         )}
 
-        {isBookLoading && <div className="text-sm text-muted-foreground">Загрузка книги...</div>}
+        {isBookLoading && <div className="text-sm text-muted-foreground">Кітап жүктелуде...</div>}
       </div>
 
       <BottomNav currentPage="books" onNavigate={onNavigate} />

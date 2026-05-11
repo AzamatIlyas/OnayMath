@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import ast
 import math
@@ -203,8 +203,8 @@ def build_achievements(stats: dict, user: AppUser) -> list[dict]:
                 "unlockedAt": created_at,
                 "achievement": {
                     "id": "ach-first-lesson",
-                    "title": "Первый шаг",
-                    "description": "Завершите первый урок.",
+                    "title": "Алғашқы қадам",
+                    "description": "Бірінші сабақты аяқтаңыз.",
                     "iconUrl": None,
                     "xpReward": 20,
                 },
@@ -217,8 +217,8 @@ def build_achievements(stats: dict, user: AppUser) -> list[dict]:
                 "unlockedAt": now - timedelta(days=1),
                 "achievement": {
                     "id": "ach-tests-3",
-                    "title": "Тест-мастер",
-                    "description": "Сдайте 3 теста с проходным баллом.",
+                    "title": "Квиз шебері",
+                    "description": "Өту балы бар 3 квизді тапсырыңыз.",
                     "iconUrl": None,
                     "xpReward": 40,
                 },
@@ -231,8 +231,8 @@ def build_achievements(stats: dict, user: AppUser) -> list[dict]:
                 "unlockedAt": now - timedelta(days=2),
                 "achievement": {
                     "id": "ach-xp-300",
-                    "title": "Сила практики",
-                    "description": "Наберите 300 XP.",
+                    "title": "Жаттығу күші",
+                    "description": "300 XP жинаңыз.",
                     "iconUrl": None,
                     "xpReward": 50,
                 },
@@ -245,8 +245,8 @@ def build_achievements(stats: dict, user: AppUser) -> list[dict]:
                 "unlockedAt": now,
                 "achievement": {
                     "id": "ach-streak-3",
-                    "title": "Серия побед",
-                    "description": "Занимайтесь 3 дня подряд.",
+                    "title": "Жеңіс сериясы",
+                    "description": "3 күн қатарынан оқыңыз.",
                     "iconUrl": None,
                     "xpReward": 30,
                 },
@@ -314,53 +314,53 @@ def build_assistant_reply(message: str, topic: Topic | None = None, history: Ite
     maybe_answer = try_solve_expression(message)
     if maybe_answer is not None:
         return (
-            f"Результат вычисления: {maybe_answer}\n\n"
-            "Как проверять себя:\n"
-            "1. Соблюдай порядок действий.\n"
-            "2. Пересчитай выражение по шагам.\n"
-            "3. Сверь знаки и скобки."
+            f"Есептеу нәтижесі: {maybe_answer}\n\n"
+            "Өзіңізді тексеру:\n"
+            "1. Амалдардың орындалу ретін сақтаңыз.\n"
+            "2. Өрнекті қадамдап қайта есептеңіз.\n"
+            "3. Таңбалар мен жақшаларды тексеріңіз."
         )
 
-    topic_line = f"Тема: {topic.title}\n" if topic else ""
+    topic_line = f"Тақырып: {topic.title}\n" if topic else ""
     hint = ""
     lowered = message.lower()
 
-    if "дроб" in lowered:
+    if "бөлшек" in lowered or "дроб" in lowered:
         hint = (
-            "Алгоритм для дробей:\n"
-            "1. Приведи к общему знаменателю.\n"
-            "2. Выполни действие только с числителями.\n"
-            "3. Сократи результат.\n"
+            "Бөлшекке арналған алгоритм:\n"
+            "1. Ортақ бөлімге келтіріңіз.\n"
+            "2. Амалды тек алымдармен орындаңыз.\n"
+            "3. Нәтижені қысқартыңыз.\n"
         )
-    elif "уравнен" in lowered:
+    elif "теңдеу" in lowered or "уравнен" in lowered:
         hint = (
-            "Алгоритм для линейного уравнения:\n"
-            "1. Перенеси неизвестные влево, числа вправо.\n"
-            "2. Приведи подобные.\n"
-            "3. Раздели на коэффициент перед x.\n"
-            "4. Сделай проверку подстановкой.\n"
+            "Сызықтық теңдеуге арналған алгоритм:\n"
+            "1. Белгісіздерді сол жаққа, сандарды оң жаққа шығарыңыз.\n"
+            "2. Ұқсас мүшелерді біріктіріңіз.\n"
+            "3. x алдындағы коэффициентке бөліңіз.\n"
+            "4. Орнына қою арқылы тексеріңіз.\n"
         )
-    elif "геом" in lowered or "угол" in lowered or "треуг" in lowered:
+    elif "геом" in lowered or "бұрыш" in lowered or "үшбұрыш" in lowered or "угол" in lowered or "треуг" in lowered:
         hint = (
-            "Ключевые правила:\n"
-            "1. Сумма углов треугольника = 180°.\n"
-            "2. Вертикальные углы равны.\n"
-            "3. Смежные углы дают 180°.\n"
+            "Негізгі ережелер:\n"
+            "1. Үшбұрыш бұрыштарының қосындысы = 180°.\n"
+            "2. Вертикаль бұрыштар тең.\n"
+            "3. Іргелес бұрыштардың қосындысы 180°.\n"
         )
     else:
         hint = (
-            "Разберем тему пошагово:\n"
-            "1. Определи, что известно в задаче.\n"
-            "2. Выбери формулу или правило.\n"
-            "3. Решай по этапам без пропусков.\n"
-            "4. Проверь ответ обратным действием.\n"
+            "Тақырыпты қадамдап талдайық:\n"
+            "1. Есепте не берілгенін анықтаңыз.\n"
+            "2. Қажетті формула немесе ережені таңдаңыз.\n"
+            "3. Қадамдарды өткізіп алмай, ретімен шығарыңыз.\n"
+            "4. Нәтижені кері амалмен тексеріңіз.\n"
         )
 
     return (
         f"{topic_line}"
-        "Объясняю коротко и понятно.\n\n"
+        "Қысқа әрі түсінікті түсіндіремін.\n\n"
         f"{hint}\n"
-        "Если хочешь, отправь конкретный пример из задачи, и я разберу его до ответа."
+        "Қаласаңыз, нақты есеп мысалын жіберіңіз, мен оны соңына дейін талдап беремін."
     )
 
 
@@ -378,3 +378,5 @@ def serialize_chat_message(item: ChatMessage) -> dict:
         "topicContext": item.topic_context,
         "createdAt": item.created_at,
     }
+
+

@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from datetime import datetime, timezone
 
@@ -18,7 +18,7 @@ router = APIRouter(prefix="/quizzes", tags=["quizzes"])
 async def get_questions(lesson_id: str, user: AppUser = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     lesson = (await db.execute(select(Lesson).where(Lesson.id == lesson_id))).scalar_one_or_none()
     if not lesson:
-        raise HTTPException(status_code=404, detail={"error": "Lesson not found", "code": "LESSON_NOT_FOUND"})
+        raise HTTPException(status_code=404, detail={"error": "Сабақ табылмады", "code": "LESSON_NOT_FOUND"})
 
     questions = (
         (
@@ -44,7 +44,7 @@ async def submit_quiz(
 ):
     lesson = (await db.execute(select(Lesson).where(Lesson.id == lesson_id))).scalar_one_or_none()
     if not lesson:
-        raise HTTPException(status_code=404, detail={"error": "Lesson not found", "code": "LESSON_NOT_FOUND"})
+        raise HTTPException(status_code=404, detail={"error": "Сабақ табылмады", "code": "LESSON_NOT_FOUND"})
 
     questions = (
         (
@@ -56,12 +56,12 @@ async def submit_quiz(
         .all()
     )
     if not questions:
-        raise HTTPException(status_code=400, detail={"error": "No quiz questions for this lesson", "code": "QUIZ_EMPTY"})
+        raise HTTPException(status_code=400, detail={"error": "Бұл сабаққа квиз сұрақтары табылмады", "code": "QUIZ_EMPTY"})
 
     if len(payload.answers) != len(questions):
         raise HTTPException(
             status_code=400,
-            detail={"error": "Answers count does not match number of questions", "code": "INVALID_ANSWERS"},
+            detail={"error": "Жауап саны сұрақ санына сәйкес келмейді", "code": "INVALID_ANSWERS"},
         )
 
     correct = 0
@@ -120,3 +120,5 @@ async def submit_quiz(
         "correctAnswers": correct_answers,
         "explanations": explanations,
     }
+
+

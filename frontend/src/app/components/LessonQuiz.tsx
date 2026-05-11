@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { ChevronRight, Star, Trophy, X } from "lucide-react";
 
 import { lessonsApi, quizzesApi } from "../api";
@@ -103,7 +103,7 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
         setLesson(response);
       } catch (err) {
         if (!mounted) return;
-        setError(getErrorMessage(err, "Failed to load lesson"));
+        setError(getErrorMessage(err, "Сабақты жүктеу мүмкін болмады"));
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -136,7 +136,7 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
       setCurrentQuestion(0);
       setScreen("quiz");
     } catch (err) {
-      setError(getErrorMessage(err, "Failed to start quiz"));
+      setError(getErrorMessage(err, "Квизді бастау мүмкін болмады"));
     } finally {
       setIsLoading(false);
     }
@@ -158,7 +158,7 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
 
   const handleSubmit = async () => {
     if (answers.some((answer) => answer < 0)) {
-      setError("Нужно ответить на все вопросы");
+      setError("Барлық сұраққа жауап беріңіз");
       return;
     }
 
@@ -170,7 +170,7 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
       setResult(response);
       setScreen("result");
     } catch (err) {
-      setError(getErrorMessage(err, "Failed to submit quiz"));
+      setError(getErrorMessage(err, "Квиз нәтижесін жіберу мүмкін болмады"));
     } finally {
       setIsSubmitting(false);
     }
@@ -179,7 +179,7 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
   if (isLoading && !lesson) {
     return (
       <div className="min-h-screen bg-background p-6">
-        <div className="text-sm text-muted-foreground">Загрузка...</div>
+        <div className="text-sm text-muted-foreground">Жүктелуде...</div>
       </div>
     );
   }
@@ -189,7 +189,7 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
       <div className="min-h-screen bg-background flex flex-col">
         <div className="bg-white border-b border-border p-4 flex items-center justify-between">
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-muted"><X className="w-5 h-5" /></button>
-          <h2 style={{ fontWeight: 700 }}>{lesson?.title ?? "Урок"}</h2>
+          <h2 style={{ fontWeight: 700 }}>{lesson?.title ?? "Сабақ"}</h2>
           <div className="w-9" />
         </div>
 
@@ -197,19 +197,19 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
           {error && <div className="rounded-2xl border border-red-300 bg-red-50 text-red-700 px-4 py-3 text-sm">{error}</div>}
 
           <div className="bg-white rounded-3xl border border-border p-5">
-            <div className="text-sm text-muted-foreground mb-2">Длительность: {lesson?.durationMinutes ?? 0} мин</div>
+            <div className="text-sm text-muted-foreground mb-2">Ұзақтығы: {lesson?.durationMinutes ?? 0} мин</div>
             <h3 className="text-xl mb-3" style={{ fontWeight: 800 }}>{lesson?.title}</h3>
             <div className="space-y-4 text-sm text-foreground">
               {lessonContent.overview && (
                 <section className="rounded-2xl bg-muted/40 p-4">
-                  <h4 className="mb-2 font-semibold">О чем урок</h4>
+                  <h4 className="mb-2 font-semibold">Сабақ туралы</h4>
                   <p className="leading-relaxed text-muted-foreground">{lessonContent.overview}</p>
                 </section>
               )}
 
               {lessonContent.objectives.length > 0 && (
                 <section>
-                  <h4 className="mb-2 font-semibold">Что ты освоишь</h4>
+                  <h4 className="mb-2 font-semibold">Не үйренесіз</h4>
                   <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
                     {lessonContent.objectives.map((item, index) => (
                       <li key={index}>{item}</li>
@@ -227,14 +227,14 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
 
               {lessonContent.formula && (
                 <section className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
-                  <h4 className="mb-1 font-semibold">Ключевая формула / правило</h4>
+                  <h4 className="mb-1 font-semibold">Негізгі формула / ереже</h4>
                   <p className="font-mono text-[13px] leading-relaxed">{lessonContent.formula}</p>
                 </section>
               )}
 
               {lessonContent.algorithm.length > 0 && (
                 <section>
-                  <h4 className="mb-2 font-semibold">Алгоритм решения</h4>
+                  <h4 className="mb-2 font-semibold">Шешу алгоритмі</h4>
                   <ol className="list-decimal pl-5 space-y-1 text-muted-foreground">
                     {lessonContent.algorithm.map((step, index) => (
                       <li key={index}>{step}</li>
@@ -245,7 +245,7 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
 
               {(lessonContent.example || lessonContent.exampleSteps.length > 0 || lessonContent.check) && (
                 <section className="rounded-2xl border border-border p-4">
-                  <h4 className="mb-2 font-semibold">Разбор примера</h4>
+                  <h4 className="mb-2 font-semibold">Мысалды талдау</h4>
                   {lessonContent.example && <p className="mb-2 text-muted-foreground">{lessonContent.example}</p>}
                   {lessonContent.exampleSteps.length > 0 && (
                     <ol className="list-decimal pl-5 space-y-1 text-muted-foreground">
@@ -256,7 +256,7 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
                   )}
                   {lessonContent.check && (
                     <p className="mt-2 text-muted-foreground">
-                      <strong>Проверка:</strong> {lessonContent.check}
+                      <strong>Тексеру:</strong> {lessonContent.check}
                     </p>
                   )}
                 </section>
@@ -264,7 +264,7 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
 
               {lessonContent.mistakes.length > 0 && (
                 <section>
-                  <h4 className="mb-2 font-semibold">Частые ошибки</h4>
+                  <h4 className="mb-2 font-semibold">Жиі қателер</h4>
                   <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
                     {lessonContent.mistakes.map((item, index) => (
                       <li key={index}>{item}</li>
@@ -276,7 +276,7 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
               {Array.isArray(lessonContent.tasks) ? (
                 lessonContent.tasks.length > 0 && (
                   <section>
-                    <h4 className="mb-2 font-semibold">Задания</h4>
+                    <h4 className="mb-2 font-semibold">Тапсырмалар</h4>
                     <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
                       {lessonContent.tasks.map((item, index) => (
                         <li key={index}>{item}</li>
@@ -286,11 +286,11 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
                 )
               ) : (
                 <section>
-                  <h4 className="mb-2 font-semibold">Задания</h4>
+                  <h4 className="mb-2 font-semibold">Тапсырмалар</h4>
                   <div className="space-y-3 text-muted-foreground">
                     {toStringArray(lessonContent.tasks.basic).length > 0 && (
                       <div>
-                        <div className="font-medium text-foreground mb-1">Базовый уровень</div>
+                        <div className="font-medium text-foreground mb-1">Базалық деңгей</div>
                         <ul className="list-disc pl-5 space-y-1">
                           {toStringArray(lessonContent.tasks.basic).map((item, index) => (
                             <li key={index}>{item}</li>
@@ -300,7 +300,7 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
                     )}
                     {toStringArray(lessonContent.tasks.medium).length > 0 && (
                       <div>
-                        <div className="font-medium text-foreground mb-1">Средний уровень</div>
+                        <div className="font-medium text-foreground mb-1">Орта деңгей</div>
                         <ul className="list-disc pl-5 space-y-1">
                           {toStringArray(lessonContent.tasks.medium).map((item, index) => (
                             <li key={index}>{item}</li>
@@ -310,7 +310,7 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
                     )}
                     {toStringArray(lessonContent.tasks.advanced).length > 0 && (
                       <div>
-                        <div className="font-medium text-foreground mb-1">Продвинутый уровень</div>
+                        <div className="font-medium text-foreground mb-1">Күрделі деңгей</div>
                         <ul className="list-disc pl-5 space-y-1">
                           {toStringArray(lessonContent.tasks.advanced).map((item, index) => (
                             <li key={index}>{item}</li>
@@ -324,7 +324,7 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
 
               {lessonContent.summary && (
                 <section className="rounded-2xl bg-emerald-50 border border-emerald-100 p-4">
-                  <h4 className="mb-1 font-semibold text-emerald-900">Итог</h4>
+                  <h4 className="mb-1 font-semibold text-emerald-900">Қорытынды</h4>
                   <p className="text-emerald-900/80">{lessonContent.summary}</p>
                 </section>
               )}
@@ -339,7 +339,7 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
             className="w-full bg-primary text-white py-3 rounded-2xl flex items-center justify-center gap-2 disabled:opacity-50"
             style={{ fontWeight: 700 }}
           >
-            {isLoading ? "Загрузка..." : "Начать тест"}
+            {isLoading ? "Жүктелуде..." : "Квизді бастау"}
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
@@ -366,7 +366,7 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
           {error && <div className="rounded-2xl border border-red-300 bg-red-50 text-red-700 px-4 py-3 text-sm">{error}</div>}
 
           <div className="bg-white rounded-3xl border border-border p-5">
-            <div className="text-sm text-muted-foreground mb-2">Вопрос {currentQuestion + 1}</div>
+            <div className="text-sm text-muted-foreground mb-2">Сұрақ {currentQuestion + 1}</div>
             <h3 className="text-xl" style={{ fontWeight: 800 }}>{activeQuestion.text}</h3>
           </div>
 
@@ -392,7 +392,7 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
               className="w-full bg-primary text-white py-3 rounded-2xl disabled:opacity-50"
               style={{ fontWeight: 700 }}
             >
-              Следующий вопрос
+              Келесі сұрақ
             </button>
           ) : (
             <button
@@ -401,7 +401,7 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
               className="w-full bg-primary text-white py-3 rounded-2xl disabled:opacity-50"
               style={{ fontWeight: 700 }}
             >
-              {isSubmitting ? "Проверка..." : "Завершить тест"}
+              {isSubmitting ? "Тексерілуде..." : "Квизді аяқтау"}
             </button>
           )}
         </div>
@@ -419,8 +419,8 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
         </div>
 
         <div>
-          <h1 className="text-3xl" style={{ fontWeight: 800 }}>Тест завершен</h1>
-          <p className="opacity-90 mt-1">Отличная работа</p>
+          <h1 className="text-3xl" style={{ fontWeight: 800 }}>Квиз аяқталды</h1>
+          <p className="opacity-90 mt-1">Жарайсың!</p>
         </div>
 
         <div className="bg-white/10 rounded-3xl p-5">
@@ -439,7 +439,7 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
           className="w-full bg-[#FF6B35] text-white py-3 rounded-2xl"
           style={{ fontWeight: 700 }}
         >
-          Продолжить
+          Жалғастыру
         </button>
       </div>
     </div>
