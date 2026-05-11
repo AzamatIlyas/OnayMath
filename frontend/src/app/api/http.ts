@@ -1,6 +1,6 @@
 import type { ApiErrorPayload } from "./types";
 
-const DEFAULT_BASE_URL = "http://localhost:8000/api";
+const DEFAULT_BASE_URL = "https://onaymath.onrender.com/api";
 
 const ACCESS_TOKEN_KEY = "onaymath_access_token";
 const REFRESH_TOKEN_KEY = "onaymath_refresh_token";
