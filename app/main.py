@@ -14,6 +14,7 @@ from app.api.router.locations import router as locations_router
 from app.api.router.quizzes import router as quizzes_router
 from app.api.router.topics import router as topics_router
 from app.api.router.users import router as users_router
+from app.core.settings import settings
 from app.db.db_config import async_session_maker, engine
 from app.db.seed import seed_all
 from app.db.db_config import Base
@@ -23,12 +24,8 @@ app = FastAPI(title="OnayMath API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=settings.CORS_ORIGINS_LIST,
+    allow_origin_regex=settings.CORS_ALLOW_ORIGIN_REGEX or None,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

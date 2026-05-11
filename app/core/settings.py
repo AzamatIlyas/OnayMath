@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     R2_SECRET_ACCESS_KEY: str | None = None
     R2_BUCKET_NAME: str | None = None
     R2_PRESIGNED_EXPIRES_SECONDS: int = 3600
+    CORS_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000"
+    CORS_ALLOW_ORIGIN_REGEX: str = r"https://.*\.onrender\.com"
 
     @property
     def DATABASE_URL(self) -> str:
@@ -41,6 +43,10 @@ class Settings(BaseSettings):
                 self.R2_BUCKET_NAME,
             ]
         )
+
+    @property
+    def CORS_ORIGINS_LIST(self) -> list[str]:
+        return [item.strip() for item in self.CORS_ORIGINS.split(",") if item.strip()]
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
