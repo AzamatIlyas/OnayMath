@@ -1249,44 +1249,11 @@ async def seed_books(session: AsyncSession) -> None:
                 "Жаңа тақырып",
                 "Практикалық тапсырмалар",
                 "Бақылау сұрақтары",
-            ],
+                ],
         }
 
-    kazakh_grade11_titles = [
-        "Қазақ тілі 11-сынып: Тіл және қоғам",
-        "Қазақ тілі 11-сынып: Мәтін және стиль",
-        "Қазақ тілі 11-сынып: Орфография",
-        "Қазақ тілі 11-сынып: Пунктуация",
-        "Қазақ тілі 11-сынып: Лексика және фразеология",
-        "Қазақ тілі 11-сынып: Морфология",
-        "Қазақ тілі 11-сынып: Синтаксис",
-        "Қазақ тілі 11-сынып: Сөз мәдениеті",
-        "Қазақ тілі 11-сынып: Іскерлік қазақ тілі",
-        "Қазақ тілі 11-сынып: Ғылыми стиль және эссе",
-        "Қазақ тілі 11-сынып: ҰБТ-ға дайындық",
-    ]
-
-    desired_books: list[dict] = []
-    desired_books.extend(_math_book_payload(grade) for grade in range(1, 12))
-
-    for index, title in enumerate(kazakh_grade11_titles, start=1):
-        desired_books.append(
-            {
-                "id": f"book-kzlang-11-{index:02d}",
-                "title": title,
-                "grade": 11,
-                "cover_url": None,
-                "file_url": f"grade-11/kazakh-language/kzlang-11-{index:02d}.pdf",
-                "author": "Қазақстан Республикасы Оқу-ағарту министрлігі",
-                "published_year": 2025,
-                "chapters": [
-                    "Теориялық бөлім",
-                    "Тілдік талдау",
-                    "Жаттығулар жинағы",
-                    "Қорытынды тапсырмалар",
-                ],
-            }
-        )
+    desired_books: list[dict] = [_math_book_payload(grade) for grade in range(1, 12)]
+    desired_ids = {book["id"] for book in desired_books}
 
     existing_books = (await session.execute(select(Book))).scalars().all()
     existing_by_id = {book.id: book for book in existing_books}
@@ -1303,6 +1270,8 @@ async def seed_books(session: AsyncSession) -> None:
             existing.chapters = payload["chapters"]
             continue
         session.add(Book(**payload))
+
+    await session.execute(delete(Book).where(Book.id.not_in(desired_ids)))
 
 
 async def seed_all(session: AsyncSession) -> None:
