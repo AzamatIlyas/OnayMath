@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import get_current_user, get_db
 from app.db.models.education import AppUser, Lesson, QuizQuestion
 from app.schema.api import QuizSubmitRequest
-from app.service.platform import get_or_create_progress, update_streak
+from app.service.platform import QUIZ_PASSING_SCORE_PERCENT, get_or_create_progress, update_streak
 
 router = APIRouter(prefix="/quizzes", tags=["quizzes"])
 
@@ -88,22 +88,29 @@ async def submit_quiz(
 
     if score_percent >= 90:
         stars = 3
-    elif score_percent >= 70:
+    elif score_percent >= 75:
         stars = 2
-    elif score_percent >= 50:
+    elif score_percent >= QUIZ_PASSING_SCORE_PERCENT:
         stars = 1
     else:
         stars = 0
 
     raw_xp = round((score_percent / 100) * lesson.xp_reward)
     progress = await get_or_create_progress(db, user.id, lesson.id)
+    was_completed = progress.status == "COMPLETED" and progress.score >= QUIZ_PASSING_SCORE_PERCENT
     previous_xp = progress.xp_earned
     award_xp = max(raw_xp - previous_xp, 0)
 
-    progress.status = "COMPLETED"
     progress.score = max(progress.score, score_percent)
     progress.xp_earned = max(progress.xp_earned, raw_xp)
-    progress.completed_at = progress.completed_at or datetime.now(timezone.utc)
+    passed = progress.score >= QUIZ_PASSING_SCORE_PERCENT
+    if passed:
+        progress.status = "COMPLETED"
+        progress.completed_at = progress.completed_at or datetime.now(timezone.utc)
+    else:
+        progress.status = "COMPLETED" if was_completed else "IN_PROGRESS"
+        if progress.status != "COMPLETED":
+            progress.completed_at = None
 
     if award_xp > 0:
         user.xp_total += award_xp
@@ -115,6 +122,9 @@ async def submit_quiz(
     return {
         "score": correct,
         "maxScore": max_score,
+        "scorePercent": score_percent,
+        "passed": passed,
+        "passingScorePercent": QUIZ_PASSING_SCORE_PERCENT,
         "xpEarned": award_xp,
         "stars": stars,
         "correctAnswers": correct_answers,

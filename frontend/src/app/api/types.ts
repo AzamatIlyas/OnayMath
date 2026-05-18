@@ -98,6 +98,9 @@ export interface QuizQuestion {
 export interface QuizSubmitResult {
   score: number;
   maxScore: number;
+  scorePercent: number;
+  passed: boolean;
+  passingScorePercent: number;
   xpEarned: number;
   stars: number;
   correctAnswers: Array<{

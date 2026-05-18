@@ -410,6 +410,8 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
   }
 
   const stars = result?.stars ?? 0;
+  const passed = result?.passed ?? false;
+  const passingScorePercent = result?.passingScorePercent ?? 60;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#6C3FE8] to-[#8B5CF6] flex items-center justify-center p-6 text-white">
@@ -420,7 +422,9 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
 
         <div>
           <h1 className="text-3xl" style={{ fontWeight: 800 }}>Квиз аяқталды</h1>
-          <p className="opacity-90 mt-1">Жарайсың!</p>
+          <p className="opacity-90 mt-1">
+            {passed ? "Жарайсың! Сабақ өтті." : `Өту үшін кемінде ${passingScorePercent}% керек. Қайта тапсырып көріңіз.`}
+          </p>
         </div>
 
         <div className="bg-white/10 rounded-3xl p-5">
@@ -431,15 +435,16 @@ export default function LessonQuiz({ lessonId, onComplete, onClose }: LessonQuiz
           </div>
 
           <div className="text-2xl" style={{ fontWeight: 800 }}>{result?.score ?? 0}/{result?.maxScore ?? 0}</div>
+          <div className="text-sm opacity-90 mt-1">{result?.scorePercent ?? 0}%</div>
           <div className="text-lg mt-1">+{result?.xpEarned ?? 0} XP</div>
         </div>
 
         <button
-          onClick={onComplete}
+          onClick={passed ? onComplete : () => void handleStartQuiz()}
           className="w-full bg-[#FF6B35] text-white py-3 rounded-2xl"
           style={{ fontWeight: 700 }}
         >
-          Жалғастыру
+          {passed ? "Жалғастыру" : "Қайта тапсыру"}
         </button>
       </div>
     </div>

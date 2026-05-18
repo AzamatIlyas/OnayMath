@@ -20,6 +20,8 @@ SAFE_OPERATORS = {
     ast.USub: operator.neg,
 }
 
+QUIZ_PASSING_SCORE_PERCENT = 60
+
 
 def parse_cursor(cursor: str | None) -> int:
     if not cursor:
@@ -99,8 +101,13 @@ def serialize_progress(progress: LessonProgress | None) -> dict:
             "xpEarned": 0,
             "completedAt": None,
         }
+
+    status = progress.status
+    if status == "COMPLETED" and progress.score < QUIZ_PASSING_SCORE_PERCENT:
+        status = "IN_PROGRESS"
+
     return {
-        "status": progress.status,
+        "status": status,
         "score": progress.score,
         "xpEarned": progress.xp_earned,
         "completedAt": progress.completed_at,
@@ -136,7 +143,13 @@ async def build_topic_summary(session: AsyncSession, topic: Topic, user_id: str)
         progresses = {row.lesson_id: row for row in rows}
 
     total_lessons = len(lessons)
-    completed_lessons = sum(1 for lesson_id in lesson_ids if progresses.get(lesson_id) and progresses[lesson_id].status == "COMPLETED")
+    completed_lessons = sum(
+        1
+        for lesson_id in lesson_ids
+        if progresses.get(lesson_id)
+        and progresses[lesson_id].status == "COMPLETED"
+        and progresses[lesson_id].score >= QUIZ_PASSING_SCORE_PERCENT
+    )
     progress_percent = round((completed_lessons / total_lessons) * 100) if total_lessons else 0
 
     return {
@@ -168,7 +181,11 @@ async def get_user_stats(session: AsyncSession, user: AppUser) -> dict:
         await session.execute(
             select(func.count())
             .select_from(LessonProgress)
-            .where(LessonProgress.user_id == user.id, LessonProgress.status == "COMPLETED")
+            .where(
+                LessonProgress.user_id == user.id,
+                LessonProgress.status == "COMPLETED",
+                LessonProgress.score >= QUIZ_PASSING_SCORE_PERCENT,
+            )
         )
     ).scalar_one()
     tests_passed = (
@@ -178,7 +195,7 @@ async def get_user_stats(session: AsyncSession, user: AppUser) -> dict:
             .where(
                 LessonProgress.user_id == user.id,
                 LessonProgress.status == "COMPLETED",
-                LessonProgress.score >= 60,
+                LessonProgress.score >= QUIZ_PASSING_SCORE_PERCENT,
             )
         )
     ).scalar_one()

@@ -160,6 +160,9 @@ class QuizSubmitRequest(BaseModel):
 class QuizSubmitResultOut(BaseModel):
     score: int
     maxScore: int
+    scorePercent: int
+    passed: bool
+    passingScorePercent: int
     xpEarned: int
     stars: int
     correctAnswers: list[dict[str, Any]]

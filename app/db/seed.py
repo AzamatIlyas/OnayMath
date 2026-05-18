@@ -1146,11 +1146,14 @@ async def seed_reference_data(session: AsyncSession) -> None:
 
 
 async def seed_topics_lessons_and_quizzes(session: AsyncSession) -> None:
+    active_topic_ids: set[str] = set()
+
     for grade, topic_list in CURRICULUM_TOPICS.items():
         for order_index, title in enumerate(topic_list, start=1):
             # Keep distance from legacy topics to avoid grade+order uniqueness conflicts.
             safe_order_index = 100 + order_index
             bundle = _topic_bundle(grade, safe_order_index, title)
+            active_topic_ids.add(bundle.topic.id)
 
             topic = await session.get(Topic, bundle.topic.id)
             if topic:
@@ -1175,6 +1178,11 @@ async def seed_topics_lessons_and_quizzes(session: AsyncSession) -> None:
                     session.add(lesson)
 
             # Quiz questions are synchronized in a single pass by sync_hard_quiz_questions.
+
+    # Only curriculum topics stay visible; legacy/temporary topics are hidden.
+    all_topics = (await session.execute(select(Topic))).scalars().all()
+    for topic in all_topics:
+        topic.is_published = topic.id in active_topic_ids
 
 
 def _is_placeholder_content(content: dict | None) -> bool:
