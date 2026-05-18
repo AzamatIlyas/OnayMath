@@ -164,6 +164,14 @@ class TopicProfile:
     mistakes: list[str]
 
 
+@dataclass(frozen=True)
+class QuestionDraft:
+    text: str
+    options: list[str]
+    correct_index: int
+    explanation: str
+
+
 def _default_profile(title: str, grade: int) -> TopicProfile:
     return TopicProfile(
         focus=f"«{title}» тақырыбының негізгі ережесін түсініп, оны {grade}-сынып деңгейіндегі стандарт есептерде қолдану.",
@@ -257,107 +265,795 @@ def _detect_lesson_kind(title: str, order_index: int) -> Literal["theory", "prac
     return "theory" if order_index == 1 else "practice"
 
 
+def _topic_seed(title: str, grade: int, kind: Literal["theory", "practice"]) -> int:
+    return sum(ord(ch) for ch in f"{title}:{kind}") + grade * 101
+
+
+def _pick(seed: int, low: int, high: int) -> int:
+    return low + (seed % (high - low + 1))
+
+
+def _topic_category(title: str) -> str:
+    lowered = title.lower()
+
+    if "тригонометр" in lowered:
+        return "trigonometry"
+    if any(token in lowered for token in ("туынды", "интеграл", "шек")):
+        return "calculus"
+    if any(token in lowered for token in ("логарифм", "көрсеткіш")):
+        return "log_exp"
+    if "вектор" in lowered:
+        return "vector"
+    if any(token in lowered for token in ("ықтималдық", "статистика", "комбинатор")):
+        return "probability"
+    if any(token in lowered for token in ("функция", "график", "прогрессия")):
+        return "function"
+    if any(token in lowered for token in ("теңдеу", "теңсіздік", "өрнек")):
+        return "equation"
+    if any(token in lowered for token in ("бөлшек", "пайыз", "пропорц", "қатынас", "ондық", "үлес", "рационал")):
+        return "fraction_percent"
+    if any(
+        token in lowered
+        for token in ("геометр", "периметр", "аудан", "көлем", "бұрыш", "үшбұрыш", "шеңбер", "дөңгелек", "пифагор", "стереометр", "жанама")
+    ):
+        return "geometry"
+    if any(token in lowered for token in ("мәтіндік", "құрама", "модельдеу", "қозғалыс")):
+        return "word_problem"
+    return "arithmetic"
+
+
+def _format_tenths(value_tenths: int) -> str:
+    return f"{value_tenths / 10:.1f}"
+
+
+def _generic_drafts(
+    title: str,
+    grade: int,
+    kind: Literal["theory", "practice"],
+    seed: int,
+) -> list[QuestionDraft]:
+    a = _pick(seed + 1, 18, 70)
+    b = _pick(seed + 2, 9, 45)
+    c = _pick(seed + 3, 4, 20)
+    correct = a + b - c
+
+    start = _pick(seed + 4, 50, 150)
+    used = _pick(seed + 5, 15, 40)
+    added = _pick(seed + 6, 8, 30)
+    if used >= start:
+        used = start - 5
+    remain = start - used + added
+
+    strategy_text = (
+        "Күрделі есепті шағын қадамдарға бөліп, әр қадамда аралық нәтижені тексеру."
+        if kind == "practice"
+        else "Есепті шығармай тұрып, қандай формула мен шарт қолданылатынын негіздеу."
+    )
+
+    return [
+        QuestionDraft(
+            text=f"«{title}» тақырыбы бойынша есепті бастау үшін ең дұрыс әрекет қайсы?",
+            options=[
+                "Ең ұзын формуланы бірден таңдау.",
+                "Берілген шамаларды, бірліктерді және сұралғанды белгілеу.",
+                "Жауап нұсқаларын шамалап таңдау.",
+                "Тексеруді соңында емес, мүлде өткізбеу.",
+            ],
+            correct_index=1,
+            explanation="Дұрыс бастау - шартты талдау және берілгендерді нақты жазу.",
+        ),
+        QuestionDraft(
+            text=f"{a} + {b} - {c} өрнегінің мәнін табыңыз.",
+            options=[str(correct + 3), str(correct), str(correct - 4), str(correct + 10)],
+            correct_index=1,
+            explanation="Алдымен қосып, кейін азайтамыз.",
+        ),
+        QuestionDraft(
+            text=f"Қоймада {start} дәптер болды. {used}-і сатылды, кейін {added} дәптер келді. Қанша дәптер қалды?",
+            options=[str(remain), str(remain - added), str(remain + used), str(remain - 7)],
+            correct_index=0,
+            explanation="Қалғаны = бастапқы - сатылған + жаңадан келген.",
+        ),
+        QuestionDraft(
+            text=f"Шешім соңында нәтижені тексерудің ең сенімді жолы қайсы?",
+            options=[
+                "Жауапты орнына қойып немесе кері амалмен тексеру.",
+                "Жауап нұсқасының ең әдемісін таңдау.",
+                "Тек соңғы санды қайта жазу.",
+                "Аралық қадамдарды алып тастау.",
+            ],
+            correct_index=0,
+            explanation="Тексеру есептің шартқа сай екенін дәлелдейді.",
+        ),
+        QuestionDraft(
+            text=f"«{title}» тақырыбында тұрақты дұрыс нәтиже беретін стратегияны таңдаңыз.",
+            options=[
+                "Күрделі жерде бірден жауапты болжау.",
+                "Бір ғана дайын мысалды жаттап, бәріне соны қолдану.",
+                strategy_text,
+                "Ереже шарттарын елемеу.",
+            ],
+            correct_index=2,
+            explanation="Тұрақты нәтиже алгоритм мен тексеруге сүйенгенде ғана шығады.",
+        ),
+    ]
+
+
+def _arithmetic_drafts(
+    title: str,
+    grade: int,
+    kind: Literal["theory", "practice"],
+    seed: int,
+) -> list[QuestionDraft]:
+    _ = kind
+    a = _pick(seed + 1, 24, 86)
+    b = _pick(seed + 2, 12, 48)
+    c = _pick(seed + 3, 5, 22)
+    total = a + b - c
+
+    start = _pick(seed + 4, 60, 180)
+    used = _pick(seed + 5, 18, 45)
+    add = _pick(seed + 6, 10, 34)
+    if used >= start:
+        used = start - 8
+    remain = start - used + add
+
+    m = _pick(seed + 7, 3, 9)
+    n = _pick(seed + 8, 4, 11)
+    p = _pick(seed + 9, 18, 70)
+    mixed = p + m * n
+
+    div_base = _pick(seed + 10, 3, 9)
+    divisible = div_base * _pick(seed + 11, 4, 11)
+
+    bracket = a - (c - b)
+
+    third_question = QuestionDraft(
+        text=f"{p} + {m} × {n} өрнегінің мәнін табыңыз.",
+        options=[str(mixed), str((p + m) * n), str(p * m + n), str(p + m + n)],
+        correct_index=0,
+        explanation="Көбейту амалы қосудан бұрын орындалады.",
+    )
+    if grade < 3:
+        simple = p + m + n
+        third_question = QuestionDraft(
+            text=f"{p} + {m} + {n} қосындысын табыңыз.",
+            options=[str(simple - 2), str(simple), str(simple + 3), str(simple + 8)],
+            correct_index=1,
+            explanation="Сандарды ретімен қосамыз.",
+        )
+
+    return [
+        QuestionDraft(
+            text=f"«{title}» тақырыбы: {a} + {b} - {c} = ?",
+            options=[str(total + 4), str(total - 3), str(total), str(total + 9)],
+            correct_index=2,
+            explanation="Алдымен қосу, кейін азайту орындалады.",
+        ),
+        QuestionDraft(
+            text=f"Сөреде {start} кітап болды. {used} кітап алынды, тағы {add} кітап қойылды. Соңында неше кітап болды?",
+            options=[str(remain), str(remain + used), str(remain - add), str(start + used + add)],
+            correct_index=0,
+            explanation="Қалған саны = бастапқы - алынған + қосылған.",
+        ),
+        third_question,
+        QuestionDraft(
+            text=f"{div_base} санына қалдықсыз бөлінетін санды табыңыз.",
+            options=[str(divisible + 1), str(divisible), str(divisible + div_base - 1), str(divisible + 2)],
+            correct_index=1,
+            explanation=f"{divisible} саны {div_base}-ке дәл бөлінеді.",
+        ),
+        QuestionDraft(
+            text=f"{a} - ({c} - {b}) өрнегінің дұрыс мәні қайсы?",
+            options=[str(bracket), str(bracket + 4), str(bracket - 3), str(bracket + 9)],
+            correct_index=0,
+            explanation="Жақша ішін бірінші есептейміз: a - (c - b) = a - c + b.",
+        ),
+    ]
+
+
+def _fraction_percent_drafts(title: str, seed: int) -> list[QuestionDraft]:
+    d1 = _pick(seed + 1, 12, 39)
+    d2 = _pick(seed + 2, 11, 37)
+    d_sum = d1 + d2
+
+    den = _pick(seed + 3, 6, 12)
+    n1 = _pick(seed + 4, 1, den - 2)
+    n2 = _pick(seed + 5, 1, den - n1 - 1)
+    frac_sum = n1 + n2
+
+    base = 20 * _pick(seed + 6, 5, 12)
+    pct = 5 * _pick(seed + 7, 2, 10)
+    part = base * pct // 100
+
+    right = 5 * _pick(seed + 8, 4, 12)
+    left = right * 3 // 5
+
+    return [
+        QuestionDraft(
+            text=f"{_format_tenths(d1)} + {_format_tenths(d2)} мәнін табыңыз.",
+            options=[
+                _format_tenths(d_sum - 3),
+                _format_tenths(d_sum),
+                _format_tenths(d_sum + 2),
+                _format_tenths(d_sum - 6),
+            ],
+            correct_index=1,
+            explanation="Ондық бөлшектерді разряд бойынша қосамыз.",
+        ),
+        QuestionDraft(
+            text=f"{n1}/{den} + {n2}/{den} қосындысы неге тең?",
+            options=[f"{frac_sum}/{den}", f"{frac_sum + 1}/{den}", f"{frac_sum - 1}/{den}", f"{frac_sum}/{den + 1}"],
+            correct_index=0,
+            explanation="Бөлімдері бірдей бөлшектерде алымдар қосылады.",
+        ),
+        QuestionDraft(
+            text=f"{base} санының {pct}% мәнін табыңыз.",
+            options=[str(part), str(part + 10), str(part - 10), str(base // 10)],
+            correct_index=0,
+            explanation="Пайызды табу: base × pct / 100.",
+        ),
+        QuestionDraft(
+            text=f"3 : 5 = x : {right} болса, x неге тең?",
+            options=[str(left - 3), str(left), str(left + 5), str(right - left)],
+            correct_index=1,
+            explanation="Пропорция бойынша x = 3 × right / 5.",
+        ),
+        QuestionDraft(
+            text="Қайсысы үлкен мән?",
+            options=["0.6", "5/8", "Екеуі тең", "Салыстыру мүмкін емес"],
+            correct_index=1,
+            explanation="5/8 = 0.625, ол 0.6-дан үлкен.",
+        ),
+    ]
+
+
+def _equation_drafts(title: str, seed: int) -> list[QuestionDraft]:
+    lowered = title.lower()
+    x = _pick(seed + 1, 2, 9)
+    k = _pick(seed + 2, 2, 7)
+    b = _pick(seed + 3, 3, 14)
+    rhs = k * x + b
+
+    p = _pick(seed + 4, 1, 6)
+    x2 = _pick(seed + 5, 4, 12)
+    rhs2 = 2 * (x2 - p)
+
+    good = _pick(seed + 6, 3, 11)
+    check_rhs = 3 * good - 7
+
+    item1 = QuestionDraft(
+        text=f"{k}x + {b} = {rhs} теңдеуін шешіңіз.",
+        options=[str(x + 1), str(x), str(x - 1), str(rhs)],
+        correct_index=1,
+        explanation="Айнымалыны жеке қалдырып, коэффициентке бөлеміз.",
+    )
+
+    if "жүйе" in lowered:
+        sx = _pick(seed + 7, 2, 8)
+        sy = _pick(seed + 8, 1, 7)
+        s1 = sx + sy
+        s2 = sx - sy
+        item2 = QuestionDraft(
+            text=f"Жүйені шешіңіз: x + y = {s1}, x - y = {s2}.",
+            options=[f"x={sx}, y={sy}", f"x={s1}, y={s2}", f"x={sy}, y={sx}", f"x={sx + 1}, y={sy - 1}"],
+            correct_index=0,
+            explanation="Қосу/азайту әдісімен x және y мәндерін табамыз.",
+        )
+    elif "теңсіздік" in lowered:
+        boundary = _pick(seed + 7, 2, 9)
+        c = _pick(seed + 8, 1, 6)
+        r = k * boundary - c
+        item2 = QuestionDraft(
+            text=f"{k}x - {c} > {r} теңсіздігінің шешімі қайсы?",
+            options=[f"x < {boundary}", f"x > {boundary}", f"x = {boundary}", f"x >= {boundary}"],
+            correct_index=1,
+            explanation="k оң болғандықтан, жақтарды бөлгенде таңба өзгермейді: x > boundary.",
+        )
+    elif "квадрат" in lowered:
+        r1 = _pick(seed + 7, 1, 5)
+        r2 = r1 + _pick(seed + 8, 1, 4)
+        item2 = QuestionDraft(
+            text=f"(x - {r1})(x - {r2}) = 0 теңдеуінің түбірлерін табыңыз.",
+            options=[f"x={r1} немесе x={r2}", f"x={r1 + r2}", f"x={r1 * r2}", "Түбір жоқ"],
+            correct_index=0,
+            explanation="Көбейтінді нөл болса, көбейткіштердің бірі нөлге тең.",
+        )
+    else:
+        item2 = QuestionDraft(
+            text=f"2(x - {p}) = {rhs2} теңдеуін шешіңіз.",
+            options=[str(x2), str(x2 + p), str(rhs2), str(x2 - 2)],
+            correct_index=0,
+            explanation="Алдымен 2-ге бөліп, содан кейін p-ны қосамыз.",
+        )
+
+    price = _pick(seed + 9, 60, 140)
+    total = 2 * price + 30
+
+    return [
+        item1,
+        item2,
+        QuestionDraft(
+            text=f"Қай x мәні 3x - 7 = {check_rhs} теңдеуін қанағаттандырады?",
+            options=[str(good - 2), str(good + 1), str(good), str(good + 3)],
+            correct_index=2,
+            explanation="x-ті орнына қойып тексереміз.",
+        ),
+        QuestionDraft(
+            text=f"Екі бірдей дәптер және 30 тг қалам бірге {total} тг тұрса, бір дәптердің бағасы қанша?",
+            options=[str(price), str(price + 30), str(total // 2), str(price - 15)],
+            correct_index=0,
+            explanation="Теңдеу: 2x + 30 = total.",
+        ),
+        QuestionDraft(
+            text="Қай теңдеу «санды 5-ке көбейтіп, 12 қосты, нәтиже 47 болды» мәтініне сәйкес?",
+            options=["5x + 12 = 47", "5 + 12x = 47", "x + 5 = 12 + 47", "47x = 5 + 12"],
+            correct_index=0,
+            explanation="Мәтіндік сипаттаманы тура алгебралық түрге аударамыз.",
+        ),
+    ]
+
+
+def _geometry_drafts(title: str, seed: int) -> list[QuestionDraft]:
+    lowered = title.lower()
+    a = _pick(seed + 1, 4, 14)
+    b = _pick(seed + 2, 5, 15)
+    per = 2 * (a + b)
+    area = a * b
+
+    alpha = _pick(seed + 3, 35, 80)
+    beta = _pick(seed + 4, 25, 60)
+    if alpha + beta >= 170:
+        beta = 160 - alpha
+    gamma = 180 - alpha - beta
+
+    triples = [(3, 4, 5), (5, 12, 13), (8, 15, 17), (7, 24, 25)]
+    t = triples[seed % len(triples)]
+    t_a, t_b, t_c = t
+
+    r = _pick(seed + 5, 3, 9)
+    circle = 2 * 3.14 * r
+
+    second_item = QuestionDraft(
+        text=f"Қабырғалары {a} см және {b} см тіктөртбұрыштың ауданын табыңыз.",
+        options=[str(area), str(per), str(area + a), str(area - b)],
+        correct_index=0,
+        explanation="Тіктөртбұрыш ауданы: S = a × b.",
+    )
+    if "көлем" in lowered or "стереометр" in lowered:
+        x = _pick(seed + 6, 3, 8)
+        y = _pick(seed + 7, 4, 9)
+        z = _pick(seed + 8, 2, 7)
+        volume = x * y * z
+        second_item = QuestionDraft(
+            text=f"Өлшемдері {x} см, {y} см, {z} см тікбұрышты параллелепипедтің көлемі қанша?",
+            options=[str(volume), str(x * y + z), str(2 * (x + y + z)), str(volume - z)],
+            correct_index=0,
+            explanation="Көлем формуласы: V = a × b × c.",
+        )
+
+    return [
+        QuestionDraft(
+            text=f"Қабырғалары {a} см және {b} см тіктөртбұрыштың периметрін табыңыз.",
+            options=[str(per), str(a + b), str(2 * a + b), str(per + 2)],
+            correct_index=0,
+            explanation="Периметр формуласы: P = 2(a + b).",
+        ),
+        second_item,
+        QuestionDraft(
+            text=f"Үшбұрыштың екі бұрышы {alpha}° және {beta}°. Үшінші бұрыш қанша?",
+            options=[str(gamma), str(alpha + beta), str(180 - alpha), str(beta + 10)],
+            correct_index=0,
+            explanation="Үшбұрыш бұрыштарының қосындысы 180°.",
+        ),
+        QuestionDraft(
+            text=f"Тікбұрышты үшбұрыштың катеттері {t_a} және {t_b}. Гипотенузаны табыңыз.",
+            options=[str(t_c), str(t_a + t_b), str(t_c - 1), str(t_c + 2)],
+            correct_index=0,
+            explanation="Пифагор теоремасы: c² = a² + b².",
+        ),
+        QuestionDraft(
+            text=f"Радиусы {r} см шеңбер ұзындығын табыңыз (π = 3.14).",
+            options=[f"{circle:.2f}", f"{(3.14 * r * r):.2f}", f"{(2 * r):.2f}", f"{(circle - 3.14):.2f}"],
+            correct_index=0,
+            explanation="Шеңбер ұзындығы: L = 2πr.",
+        ),
+    ]
+
+
+def _function_drafts(title: str, seed: int) -> list[QuestionDraft]:
+    lowered = title.lower()
+    x = _pick(seed + 1, 2, 7)
+    val = 2 * x - 3
+
+    px1 = _pick(seed + 2, 0, 3)
+    px2 = px1 + _pick(seed + 3, 2, 5)
+    py1 = _pick(seed + 4, 1, 5)
+    slope = _pick(seed + 5, 1, 4)
+    py2 = py1 + slope * (px2 - px1)
+
+    a1 = _pick(seed + 6, 2, 9)
+    d = _pick(seed + 7, 2, 6)
+    n = _pick(seed + 8, 4, 8)
+    an = a1 + (n - 1) * d
+
+    item3 = QuestionDraft(
+        text=f"Арифметикалық прогрессияда a₁ = {a1}, d = {d}. a{n} мүшесін табыңыз.",
+        options=[str(an), str(a1 + n * d), str(an - d), str(an + 2)],
+        correct_index=0,
+        explanation="aₙ = a₁ + (n-1)d формуласы қолданылады.",
+    )
+    if "прогрессия" not in lowered:
+        gx = _pick(seed + 9, 2, 5)
+        item3 = QuestionDraft(
+            text=f"y = x² функциясында x = {gx} кезінде y неге тең?",
+            options=[str(gx * gx), str(2 * gx), str(gx + 2), str(gx * gx - 1)],
+            correct_index=0,
+            explanation="Функция мәніне x орнына сан қоямыз.",
+        )
+
+    return [
+        QuestionDraft(
+            text=f"y = 2x - 3 функциясында x = {x} болса, y неге тең?",
+            options=[str(val), str(val + 2), str(2 * x + 3), str(x - 3)],
+            correct_index=0,
+            explanation="Айнымалыны орнына қойып есептейміз.",
+        ),
+        QuestionDraft(
+            text=f"({px1}, {py1}) және ({px2}, {py2}) нүктелері арқылы өтетін түзу үшін көлбеулік коэффициенті (k) неге тең?",
+            options=[str(slope), str(py2 - py1), str(px2 - px1), str(slope + 1)],
+            correct_index=0,
+            explanation="k = (y2 - y1) / (x2 - x1).",
+        ),
+        item3,
+        QuestionDraft(
+            text="Қай нүкте y = 2x + 1 графигіне жатады?",
+            options=["(2, 5)", "(2, 3)", "(1, 1)", "(0, 2)"],
+            correct_index=0,
+            explanation="x=2 болса, y=2·2+1=5.",
+        ),
+        QuestionDraft(
+            text="y = f(x - 2) + 1 түрлендіруі графикті қалай жылжытады?",
+            options=["2 бірлік солға, 1 бірлік төмен", "2 бірлік оңға, 1 бірлік жоғары", "1 бірлік оңға, 2 бірлік жоғары", "График өзгермейді"],
+            correct_index=1,
+            explanation="x-тің ішінде (x-2) болса оңға, сыртында +1 болса жоғары жылжиды.",
+        ),
+    ]
+
+
+def _probability_drafts(seed: int) -> list[QuestionDraft]:
+    red = _pick(seed + 1, 3, 8)
+    blue = _pick(seed + 2, 2, 7)
+    total = red + blue
+
+    a = _pick(seed + 3, 4, 12)
+    b = _pick(seed + 4, 5, 13)
+    c = _pick(seed + 5, 6, 14)
+    mean = (a + b + c) / 3
+
+    m1 = _pick(seed + 6, 6, 14)
+    m2 = m1 + _pick(seed + 7, 1, 4)
+    m3 = m2 + _pick(seed + 8, 1, 4)
+
+    return [
+        QuestionDraft(
+            text=f"Қорапта {red} қызыл және {blue} көк шар бар. Кездейсоқ бір шар алғанда қызыл шығу ықтималдығы қанша?",
+            options=[f"{red}/{total}", f"{blue}/{total}", f"{total}/{red}", "1/2"],
+            correct_index=0,
+            explanation="Қолайлы жағдай саны / барлық жағдай саны.",
+        ),
+        QuestionDraft(
+            text=f"{a}, {b}, {c} сандарының арифметикалық ортасын табыңыз.",
+            options=[f"{mean:.2f}", str(a + b + c), str((a + b) // 2), f"{(mean + 1):.2f}"],
+            correct_index=0,
+            explanation="Орташа мән: (a+b+c)/3.",
+        ),
+        QuestionDraft(
+            text=f"{m1}, {m2}, {m3} деректер жиынының медианасы қандай?",
+            options=[str(m1), str(m2), str(m3), str((m1 + m3) // 2)],
+            correct_index=1,
+            explanation="Өсу ретімен тұрған үш санның медианасы - ортасындағы сан.",
+        ),
+        QuestionDraft(
+            text="4 оқушыны бір қатарға неше түрлі тәсілмен орналастыруға болады?",
+            options=["24", "16", "12", "8"],
+            correct_index=0,
+            explanation="Пермутация саны: 4! = 24.",
+        ),
+        QuestionDraft(
+            text="5 оқушыдан 2 оқушыны кезекші етіп таңдаудың саны қанша?",
+            options=["10", "20", "7", "25"],
+            correct_index=0,
+            explanation="Комбинация: C(5,2)=10.",
+        ),
+    ]
+
+
+def _trigonometry_drafts() -> list[QuestionDraft]:
+    return [
+        QuestionDraft(
+            text="sin 30° мәнін табыңыз.",
+            options=["1/2", "√3/2", "0", "1"],
+            correct_index=0,
+            explanation="Негізгі тригонометриялық мән: sin 30° = 1/2.",
+        ),
+        QuestionDraft(
+            text="0° пен 180° аралығында cos x = 0 теңдеуінің шешімі қайсы?",
+            options=["x = 0°", "x = 90°", "x = 180°", "Шешімі жоқ"],
+            correct_index=1,
+            explanation="cos x осьте нөлге 90°-та тең.",
+        ),
+        QuestionDraft(
+            text="Гипотенузасы 10, бір сүйір бұрышы 30° болатын тікбұрышты үшбұрышта осы бұрышқа қарсы катет қанша?",
+            options=["5", "10", "5√3", "2"],
+            correct_index=0,
+            explanation="Қарсы катет = гипотенуза × sin30° = 10 × 1/2.",
+        ),
+        QuestionDraft(
+            text="sin²α + cos²α өрнегінің мәні неге тең?",
+            options=["0", "1", "sin α", "cos α"],
+            correct_index=1,
+            explanation="Негізгі тепе-теңдік: sin²α + cos²α = 1.",
+        ),
+        QuestionDraft(
+            text="0° пен 180° аралығында 2sin x = 1 теңдеуінің шешімдері қайсы?",
+            options=["x = 30°", "x = 150°", "x = 30° және x = 150°", "x = 60°"],
+            correct_index=2,
+            explanation="sin x = 1/2 болғанда екі бұрыш бар: 30° және 150°.",
+        ),
+    ]
+
+
+def _calculus_drafts(title: str) -> list[QuestionDraft]:
+    lowered = title.lower()
+    if "интеграл" in lowered or "алғашқы функция" in lowered:
+        return [
+            QuestionDraft(
+                text="∫(2x + 3)dx интегралын табыңыз.",
+                options=["x² + 3x + C", "2x + 3 + C", "x² + C", "2x² + 3x + C"],
+                correct_index=0,
+                explanation="Қосындының интегралы жеке интегралдар қосындысына тең.",
+            ),
+            QuestionDraft(
+                text="∫₀² x dx мәнін есептеңіз.",
+                options=["2", "4", "1", "8"],
+                correct_index=0,
+                explanation="Алғашқы функция x²/2, сонда (4/2)-0=2.",
+            ),
+            QuestionDraft(
+                text="y = x түзуі мен Ox осі арасындағы [0;4] кесіндісіндегі аудан қанша?",
+                options=["8", "16", "4", "6"],
+                correct_index=0,
+                explanation="Бұл негізі 4, биіктігі 4 болатын үшбұрыш: S=1/2·4·4=8.",
+            ),
+            QuestionDraft(
+                text="d/dx (x² + 3x) туындысы неге тең?",
+                options=["2x + 3", "x + 3", "2x", "x² + 3"],
+                correct_index=0,
+                explanation="Интеграл мен туынды тақырыптары байланысқан: стандарт туынды ережесі.",
+            ),
+            QuestionDraft(
+                text="∫(1/x)dx (x>0) нәтижесін табыңыз.",
+                options=["ln x + C", "1/x² + C", "x + C", "eˣ + C"],
+                correct_index=0,
+                explanation="1/x функциясының алғашқы функциясы ln x.",
+            ),
+        ]
+
+    return [
+        QuestionDraft(
+            text="f(x)=x³-4x болса, f'(x) неге тең?",
+            options=["3x²-4", "x²-4", "3x-4", "x³-4"],
+            correct_index=0,
+            explanation="Қуат ережесі: (x^n)' = n*x^(n-1).",
+        ),
+        QuestionDraft(
+            text="f(x)=x² функциясы үшін x=3 нүктесіндегі жанаманың көлбеулігі қандай?",
+            options=["6", "3", "9", "2"],
+            correct_index=0,
+            explanation="f'(x)=2x, сонда f'(3)=6.",
+        ),
+        QuestionDraft(
+            text="y = -x² + 4x - 1 функциясының экстремумы x-тің қай мәнінде болады?",
+            options=["x = 2", "x = -2", "x = 4", "x = 1"],
+            correct_index=0,
+            explanation="Туындысы -2x+4, оны нөлге теңестірсек x=2.",
+        ),
+        QuestionDraft(
+            text="lim x→1 (x²-1)/(x-1) шегін табыңыз.",
+            options=["2", "1", "0", "Шегі жоқ"],
+            correct_index=0,
+            explanation="Қысқарту: (x-1)(x+1)/(x-1)=x+1, x=1 болса 2.",
+        ),
+        QuestionDraft(
+            text="Туындыны қолданудың дұрыс мысалын таңдаңыз.",
+            options=["Функцияның өсу/кему аралықтарын анықтау", "Тек бөлшек қысқарту", "Тек пайыз табу", "Тек пропорция құру"],
+            correct_index=0,
+            explanation="Туынды функцияның өзгеру жылдамдығын сипаттайды.",
+        ),
+    ]
+
+
+def _log_exp_drafts() -> list[QuestionDraft]:
+    return [
+        QuestionDraft(
+            text="2^x = 32 теңдеуін шешіңіз.",
+            options=["x = 5", "x = 4", "x = 6", "x = 3"],
+            correct_index=0,
+            explanation="32 = 2^5.",
+        ),
+        QuestionDraft(
+            text="log₂(8) мәнін табыңыз.",
+            options=["3", "2", "4", "8"],
+            correct_index=0,
+            explanation="2^3=8 болғандықтан, log₂8=3.",
+        ),
+        QuestionDraft(
+            text="ln(e^3) неге тең?",
+            options=["3", "e", "1", "0"],
+            correct_index=0,
+            explanation="ln мен e^x өзара кері функциялар.",
+        ),
+        QuestionDraft(
+            text="10^(log10 7) өрнегінің мәні қандай?",
+            options=["7", "10", "70", "1"],
+            correct_index=0,
+            explanation="a^(log_a b)=b қасиеті қолданылады.",
+        ),
+        QuestionDraft(
+            text="Қайсысы үлкен?",
+            options=["2^6", "3^4", "Екеуі тең", "Салыстыру мүмкін емес"],
+            correct_index=1,
+            explanation="2^6=64, 3^4=81, сондықтан 3^4 үлкен.",
+        ),
+    ]
+
+
+def _vector_drafts() -> list[QuestionDraft]:
+    return [
+        QuestionDraft(
+            text="a = (2, -1), b = (3, 4). a + b қосындысын табыңыз.",
+            options=["(5, 3)", "(6, 4)", "(1, -5)", "(-1, 3)"],
+            correct_index=0,
+            explanation="Координаталар бойынша қосамыз.",
+        ),
+        QuestionDraft(
+            text="v = (3,4) векторының ұзындығы неге тең?",
+            options=["5", "7", "12", "1"],
+            correct_index=0,
+            explanation="|v| = √(3²+4²)=5.",
+        ),
+        QuestionDraft(
+            text="(1,2) және (3,-1) векторларының скаляр көбейтіндісін табыңыз.",
+            options=["1", "5", "-1", "6"],
+            correct_index=0,
+            explanation="1·3 + 2·(-1) = 3 - 2 = 1.",
+        ),
+        QuestionDraft(
+            text="Қай жұп векторлар коллинеар?",
+            options=["(2,4) және (1,2)", "(1,3) және (2,5)", "(2,1) және (1,2)", "(3,0) және (0,3)"],
+            correct_index=0,
+            explanation="(2,4)=2·(1,2), яғни параллель.",
+        ),
+        QuestionDraft(
+            text="A(1,2), B(4,7) болса, AB векторы қандай?",
+            options=["(3,5)", "(5,9)", "(-3,-5)", "(4,7)"],
+            correct_index=0,
+            explanation="AB = (xB-xA, yB-yA) = (3,5).",
+        ),
+    ]
+
+
+def _word_problem_drafts(seed: int) -> list[QuestionDraft]:
+    speed = _pick(seed + 1, 40, 90)
+    time = _pick(seed + 2, 2, 5)
+    distance = speed * time
+
+    kg = _pick(seed + 3, 12, 36)
+    price = _pick(seed + 4, 180, 420)
+    cost = kg * price
+
+    return [
+        QuestionDraft(
+            text=f"Көлік {speed} км/сағ жылдамдықпен {time} сағат жүрді. Жүрген қашықтықты табыңыз.",
+            options=[str(distance), str(speed + time), str(distance - speed), str(speed * (time - 1))],
+            correct_index=0,
+            explanation="Қашықтық = жылдамдық × уақыт.",
+        ),
+        QuestionDraft(
+            text=f"{kg} кг өнімнің 1 кг бағасы {price} тг. Жалпы құнын есептеңіз.",
+            options=[str(cost), str(kg + price), str(cost - price), str(kg * (price // 10))],
+            correct_index=0,
+            explanation="Жалпы құн = масса × бірлік бағасы.",
+        ),
+        QuestionDraft(
+            text="Мәтіндік есепте теңдеу құрудың бірінші қадамы қайсы?",
+            options=[
+                "Белгісіз шаманы белгілеу және шартты қысқаша жазу",
+                "Дайын жауапты таңдау",
+                "Кері тексеруді алып тастау",
+                "Тек соңғы санды пайдалану",
+            ],
+            correct_index=0,
+            explanation="Белгісізді дұрыс белгілеу шешімнің негізі.",
+        ),
+        QuestionDraft(
+            text="Бірдей 3 заттың бағасы 750 тг. Бір зат қанша тұрады?",
+            options=["250", "150", "300", "225"],
+            correct_index=0,
+            explanation="750/3 = 250.",
+        ),
+        QuestionDraft(
+            text="Екі кезеңді есепте дұрыс тексеру қалай жасалады?",
+            options=[
+                "Әр кезең нәтижесін шартпен салыстырып, соңында толық кері тексеру жасау",
+                "Тек бірінші кезеңді жазу",
+                "Соңғы жауапты өзгертпей қалдыру",
+                "Өлшем бірліктерін елемеу",
+            ],
+            correct_index=0,
+            explanation="Кезеңдік тексеру қате жиналуын болдырмайды.",
+        ),
+    ]
+
+
+def _topic_question_drafts(
+    title: str,
+    grade: int,
+    kind: Literal["theory", "practice"],
+) -> list[QuestionDraft]:
+    category = _topic_category(title)
+    seed = _topic_seed(title, grade, kind)
+
+    if category == "trigonometry":
+        return _trigonometry_drafts()
+    if category == "calculus":
+        return _calculus_drafts(title)
+    if category == "log_exp":
+        return _log_exp_drafts()
+    if category == "vector":
+        return _vector_drafts()
+    if category == "probability":
+        return _probability_drafts(seed)
+    if category == "function":
+        return _function_drafts(title, seed)
+    if category == "equation":
+        return _equation_drafts(title, seed)
+    if category == "fraction_percent":
+        return _fraction_percent_drafts(title, seed)
+    if category == "geometry":
+        return _geometry_drafts(title, seed)
+    if category == "word_problem":
+        return _word_problem_drafts(seed)
+    if category == "arithmetic":
+        return _arithmetic_drafts(title, grade, kind, seed)
+    return _generic_drafts(title, grade, kind, seed)
+
+
 def _build_hard_questions_for_lesson(
     lesson_id: str,
     title: str,
     grade: int,
     kind: Literal["theory", "practice"],
 ) -> list[QuizQuestion]:
-    profile = _topic_profile(title, grade)
-    a0 = profile.algorithm[0] if profile.algorithm else "Есеп шартын талдаңыз."
-    a1 = profile.algorithm[1] if len(profile.algorithm) > 1 else "Тиісті ережені таңдаңыз."
-    a2 = profile.algorithm[2] if len(profile.algorithm) > 2 else "Есептеуді қадамдап орындаңыз."
-    a3 = profile.algorithm[3] if len(profile.algorithm) > 3 else "Нәтижені тексеріңіз."
+    drafts = _topic_question_drafts(title, grade, kind)
+    if len(drafts) < 5:
+        drafts.extend(_generic_drafts(title, grade, kind, _topic_seed(title, grade, kind) + 17))
+    drafts = drafts[:5]
 
-    m0 = profile.mistakes[0] if profile.mistakes else "Жауапты тексермеу."
-    m1 = profile.mistakes[1] if len(profile.mistakes) > 1 else "Формуланы қолдану шартын ескермеу."
-
-    q1 = QuizQuestion(
-        id=f"q5-{lesson_id}-1",
-        lesson_id=lesson_id,
-        text=f"«{title}» тақырыбындағы негізгі ережені қолданар алдында алдымен не істеу керек?",
-        options=[
-            "Шартты тексермей бірден сандарды қою.",
-            "Ең таныс жауапты таңдау.",
-            "Есеп шартын және әдістің жарамдылығын тексеру.",
-            "Шартты жазбай, бірден жауапқа көшу.",
-        ],
-        correct_index=2,
-        explanation="Ереже дұрыс болса да, қолдану шарты сақталмаса нәтиже қате болады.",
-    )
-
-    q2 = QuizQuestion(
-        id=f"q5-{lesson_id}-2",
-        lesson_id=lesson_id,
-        text="Төмендегі қай реттілік әдістемелік тұрғыдан дұрыс?",
-        options=[
-            f"1) {a0} 2) {a2} 3) {a1} 4) {a3}",
-            f"1) {a0} 2) {a1} 3) {a2} 4) {a3}",
-            f"1) {a3} 2) {a1} 3) {a2} 4) {a0}",
-            f"1) {a2} 2) {a0} 3) {a3} 4) {a1}",
-        ],
-        correct_index=1,
-        explanation="Алдымен талдау, одан кейін ереже таңдау, сосын есептеу, ең соңында тексеру орындалады.",
-    )
-
-    q3 = QuizQuestion(
-        id=f"q5-{lesson_id}-3",
-        lesson_id=lesson_id,
-        text="Қай әрекет қате шешімге жиі әкеледі?",
-        options=[
-            "Аралық қадамдарды толық жазу.",
-            "Шектеулер мен таңбаларды тексеру.",
-            "Жауапты жуық бағамен салыстыру.",
-            m0,
-        ],
-        correct_index=3,
-        explanation=f"Бұл тақырыптағы жиі қате: {m0}",
-    )
-
-    q4 = QuizQuestion(
-        id=f"q5-{lesson_id}-4",
-        lesson_id=lesson_id,
-        text="Тексеру кезінде шартқа қайшы нәтиже шықты. Не істеу дұрыс?",
-        options=[
-            "Ереже бұзылған алғашқы қадамды тауып, сол жерден қайта есептеу.",
-            "Жуық нәтиже болса, сол күйі қалдыру.",
-            "Нәтижені үлгіге сәйкестендіріп өзгерту.",
-            "Аралық қадамдарды алып тастау.",
-        ],
-        correct_index=0,
-        explanation="Қайшылық туындаса, қате шыққан қадамды тауып, алгоритм бойынша қайта шығару керек.",
-    )
-
-    if kind == "theory":
-        q5 = QuizQuestion(
-            id=f"q5-{lesson_id}-5",
-            lesson_id=lesson_id,
-            text="Тақырыпты терең түсінгенді не жақсы көрсетеді?",
-            options=[
-                "Бір дайын мысалды ғана жаттап алу.",
-                "Ережені өз сөзімен түсіндіріп, балама тәсілмен шығарып тексеру.",
-                "Шектеулерді қарамай, тек формуланы жаттау.",
-                m1,
-            ],
-            correct_index=1,
-            explanation="Терең түсіну - білімді жаңа жағдайға қолдану және нәтижені дәлелді тексеру.",
+    questions: list[QuizQuestion] = []
+    for idx, draft in enumerate(drafts, start=1):
+        questions.append(
+            QuizQuestion(
+                id=f"q5-{lesson_id}-{idx}",
+                lesson_id=lesson_id,
+                text=draft.text,
+                options=draft.options,
+                correct_index=draft.correct_index,
+                explanation=draft.explanation,
+            )
         )
-    else:
-        q5 = QuizQuestion(
-            id=f"q5-{lesson_id}-5",
-            lesson_id=lesson_id,
-            text="Күрделі есепті шығаруда ең тиімді стратегия қайсы?",
-            options=[
-                "Таныс түр шыққанша кездейсоқ түрлендіру.",
-                "Уақыт үнемдеу үшін тексеруді өткізіп жіберу.",
-                "Есепті алгоритм қадамдарына бөліп, әр өтуді бақылау.",
-                "Шартты тексермей ең ұзын формуланы таңдау.",
-            ],
-            correct_index=2,
-            explanation="Күрделі есептер кезең-кезеңмен шешіліп, әр қадам міндетті түрде тексеріледі.",
-        )
-
-    return [q1, q2, q3, q4, q5]
+    return questions
 
 def _build_quiz_questions(grade: int, order_index: int, title: str, lesson1_id: str, lesson2_id: str) -> list[QuizQuestion]:
     _ = order_index
