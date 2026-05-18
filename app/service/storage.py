@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from functools import lru_cache
+from typing import BinaryIO
 
 import boto3
 from botocore.client import BaseClient
@@ -56,3 +57,26 @@ def build_book_signed_url(file_url_or_key: str) -> str:
         )
     except Exception:
         return file_url_or_key
+
+
+def build_r2_object_url(key: str) -> str:
+    if not settings.R2_ENDPOINT_URL or not settings.R2_BUCKET_NAME:
+        return key
+    normalized = key.lstrip("/")
+    return f"{settings.R2_ENDPOINT_URL.rstrip('/')}/{settings.R2_BUCKET_NAME}/{normalized}"
+
+
+def upload_book_pdf(file_obj: BinaryIO, key: str, content_type: str = "application/pdf") -> str:
+    client = get_r2_client()
+    if not client or not settings.R2_BUCKET_NAME:
+        raise RuntimeError("R2 storage is not configured")
+
+    normalized_key = key.lstrip("/")
+    file_obj.seek(0)
+    client.upload_fileobj(
+        file_obj,
+        settings.R2_BUCKET_NAME,
+        normalized_key,
+        ExtraArgs={"ContentType": content_type},
+    )
+    return build_r2_object_url(normalized_key)
