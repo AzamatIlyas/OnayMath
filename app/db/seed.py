@@ -1235,13 +1235,27 @@ async def sync_hard_quiz_questions(session: AsyncSession) -> None:
 
 
 async def seed_books(session: AsyncSession) -> None:
+    math_book_urls = {
+        1: "https://3b8f33e25e2e7f341b25a3fef543a0d1.r2.cloudflarestorage.com/math/books/1класс.pdf",
+        2: "https://3b8f33e25e2e7f341b25a3fef543a0d1.r2.cloudflarestorage.com/math/books/2класс.pdf",
+        3: "https://3b8f33e25e2e7f341b25a3fef543a0d1.r2.cloudflarestorage.com/math/books/3класс.pdf",
+        4: "https://3b8f33e25e2e7f341b25a3fef543a0d1.r2.cloudflarestorage.com/math/books/4класс.pdf",
+        5: "https://3b8f33e25e2e7f341b25a3fef543a0d1.r2.cloudflarestorage.com/math/books/5класс.pdf",
+        6: "https://3b8f33e25e2e7f341b25a3fef543a0d1.r2.cloudflarestorage.com/math/books/6класс.pdf",
+        7: "https://3b8f33e25e2e7f341b25a3fef543a0d1.r2.cloudflarestorage.com/math/books/7класс.pdf",
+        8: "https://3b8f33e25e2e7f341b25a3fef543a0d1.r2.cloudflarestorage.com/math/books/8класс.pdf",
+        9: "https://3b8f33e25e2e7f341b25a3fef543a0d1.r2.cloudflarestorage.com/math/books/9класс.pdf",
+        10: "https://3b8f33e25e2e7f341b25a3fef543a0d1.r2.cloudflarestorage.com/math/books/10класс.pdf",
+        11: "https://3b8f33e25e2e7f341b25a3fef543a0d1.r2.cloudflarestorage.com/math/books/11класс.pdf",
+    }
+
     def _math_book_payload(grade: int) -> dict:
         return {
             "id": f"book-grade-{grade}",
             "title": f"Математика {grade}-сынып",
             "grade": grade,
             "cover_url": None,
-            "file_url": f"grade-{grade}/math-grade-{grade}.pdf",
+            "file_url": math_book_urls[grade],
             "author": "Мектеп бағдарламасы",
             "published_year": 2025,
             "chapters": [
