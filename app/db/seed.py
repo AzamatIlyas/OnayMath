@@ -1235,33 +1235,74 @@ async def sync_hard_quiz_questions(session: AsyncSession) -> None:
 
 
 async def seed_books(session: AsyncSession) -> None:
-    existing_books = (await session.execute(select(Book))).scalars().all()
-    if existing_books:
-        for book in existing_books:
-            if book.file_url.startswith("http://") or book.file_url.startswith("https://"):
-                book.file_url = f"grade-{book.grade}/math-grade-{book.grade}.pdf"
-        return
+    def _math_book_payload(grade: int) -> dict:
+        return {
+            "id": f"book-grade-{grade}",
+            "title": f"Математика {grade}-сынып",
+            "grade": grade,
+            "cover_url": None,
+            "file_url": f"grade-{grade}/math-grade-{grade}.pdf",
+            "author": "Мектеп бағдарламасы",
+            "published_year": 2025,
+            "chapters": [
+                "Қайталау",
+                "Жаңа тақырып",
+                "Практикалық тапсырмалар",
+                "Бақылау сұрақтары",
+            ],
+        }
 
-    books = []
-    for grade in range(1, 12):
-        books.append(
-            Book(
-                id=f"book-grade-{grade}",
-                title=f"Математика {grade}-сынып",
-                grade=grade,
-                cover_url=None,
-                file_url=f"grade-{grade}/math-grade-{grade}.pdf",
-                author="Мектеп бағдарламасы",
-                published_year=2025,
-                chapters=[
-                    "Қайталау",
-                    "Жаңа тақырып",
-                    "Практикалық тапсырмалар",
-                    "Бақылау сұрақтары",
+    kazakh_grade11_titles = [
+        "Қазақ тілі 11-сынып: Тіл және қоғам",
+        "Қазақ тілі 11-сынып: Мәтін және стиль",
+        "Қазақ тілі 11-сынып: Орфография",
+        "Қазақ тілі 11-сынып: Пунктуация",
+        "Қазақ тілі 11-сынып: Лексика және фразеология",
+        "Қазақ тілі 11-сынып: Морфология",
+        "Қазақ тілі 11-сынып: Синтаксис",
+        "Қазақ тілі 11-сынып: Сөз мәдениеті",
+        "Қазақ тілі 11-сынып: Іскерлік қазақ тілі",
+        "Қазақ тілі 11-сынып: Ғылыми стиль және эссе",
+        "Қазақ тілі 11-сынып: ҰБТ-ға дайындық",
+    ]
+
+    desired_books: list[dict] = []
+    desired_books.extend(_math_book_payload(grade) for grade in range(1, 12))
+
+    for index, title in enumerate(kazakh_grade11_titles, start=1):
+        desired_books.append(
+            {
+                "id": f"book-kzlang-11-{index:02d}",
+                "title": title,
+                "grade": 11,
+                "cover_url": None,
+                "file_url": f"grade-11/kazakh-language/kzlang-11-{index:02d}.pdf",
+                "author": "Қазақстан Республикасы Оқу-ағарту министрлігі",
+                "published_year": 2025,
+                "chapters": [
+                    "Теориялық бөлім",
+                    "Тілдік талдау",
+                    "Жаттығулар жинағы",
+                    "Қорытынды тапсырмалар",
                 ],
-            )
+            }
         )
-    session.add_all(books)
+
+    existing_books = (await session.execute(select(Book))).scalars().all()
+    existing_by_id = {book.id: book for book in existing_books}
+
+    for payload in desired_books:
+        existing = existing_by_id.get(payload["id"])
+        if existing:
+            existing.title = payload["title"]
+            existing.grade = payload["grade"]
+            existing.cover_url = payload["cover_url"]
+            existing.file_url = payload["file_url"]
+            existing.author = payload["author"]
+            existing.published_year = payload["published_year"]
+            existing.chapters = payload["chapters"]
+            continue
+        session.add(Book(**payload))
 
 
 async def seed_all(session: AsyncSession) -> None:
